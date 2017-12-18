@@ -55,6 +55,7 @@ TH1D* JTCSignalProducer::doDrIntegral(TString name ){
 		TString title = sig->GetTitle();
 		TString hname = "dr_dist_"+name;
 		dr_integral = drDistMaker(sig, hname, title, 14, drbin );
+		dr_integral->GetXaxis()->SetTitle("#Deltar");
 		return dr_integral;
 }
 

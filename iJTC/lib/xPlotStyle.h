@@ -35,10 +35,10 @@ class doublePanelFig : public mCanvasBase {
 };
 
 doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int y, float r):
-		mCanvasBase(name, title, x, y, 300, 400)
+		mCanvasBase(name, title, x, y, 300, 350)
 {
 		style()->cd();
-		this->SetMargin(0.5, 0.5, 0.2, 0.10);
+		this->SetMargin(0.3, 0.3, 0.2, 0.10);
 		this->Divide(ncol,nrow);
 		tl = new TLine();
 		pad= new TPad*[2*ncol*nrow];
@@ -73,7 +73,7 @@ void doublePanelFig::histStyle(TH1* h, int n){
 				h->GetXaxis()->SetTitleSize(0.15);
 		}
 		else{
-		h->GetYaxis()->SetLabelSize(0.08);
+				h->GetYaxis()->SetLabelSize(0.08);
 		}
 }
 void doublePanelFig::drawShadowArea(int i, int j, float x1, float x2, float y1, float y2){

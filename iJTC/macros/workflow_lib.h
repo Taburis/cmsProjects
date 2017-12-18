@@ -119,6 +119,8 @@ namespace signal2D{
 								}
 								h->SetMarkerColor(kBlue+2);
 								h->SetLineWidth(1);
+								h->SetAxisRange(-2, 1.99, "X");
+								h2->SetAxisRange(-2, 1.99, "X");
 								hr[i][j]=(TH1D*)h->Clone(Form("hr_%d_%d",i,j));
 								hr2[i][j]=(TH1D*)h2->Clone(Form("hr2_%d_%d",i,j));
 								cp->addHist(h, i+1, 2-j);
@@ -131,14 +133,14 @@ namespace signal2D{
 								hr[i][j]->SetAxisRange(0, 2, "Y");  cp->addHist(hr[i][j], i+1, 2-j, 1);
 								hr2[i][j]->Divide(h2); hr2[i][j]->GetYaxis()->SetNdivisions(505);
 								hr2[i][j]->SetAxisRange(0, 2, "Y");  cp2->addHist(hr2[i][j], i+1, 2-j, 1);
-								cp->CD(i+1, 2-j, 0); tl->DrawLine(-2.5, 0, 2.5, 0);
-								cp2->CD(i+1, 2-j, 0); tl->DrawLine(-2.5, 0, 2.5, 0);
+								cp->CD(i+1, 2-j, 0); tl->DrawLine(-2., 0, 2., 0);
+								cp2->CD(i+1, 2-j, 0); tl->DrawLine(-2., 0, 2., 0);
 								tmp = trk_tag[i]+", "+cent_label[j];
 								tx->DrawLatexNDC(0.15,0.87, tmp); 
-								cp->CD(i+1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
-								cp->draw95Area(i+1,2-j, -3, 3);
-								cp2->CD(i+1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
-								cp2->draw95Area(i+1,2-j, -3, 3);
+								cp->CD(i+1, 2-j, 1); tl->DrawLine(-2., 1, 2., 1);
+								cp->draw95Area(i+1,2-j, -2, 2);
+								cp2->CD(i+1, 2-j, 1); tl->DrawLine(-2., 1, 2., 1);
+								cp2->draw95Area(i+1,2-j, -2, 2);
 						}
 				}
 				if(isNumber) {
@@ -184,7 +186,7 @@ namespace signal2D{
 		}
 
 		void drawJetShapeRatio(TString name1, TString name2, TFile *f1, TFile *f2){
-				auto *cp = new doublePanelFig("cp_"+name1+"_"+name2, "", nPt,nCent );
+				auto *cp = new doublePanelFig("cj_"+name1+"_"+name2, "",nCent, nPt);
 				JTCSignalProducer *sp1 [nPt][nCent];
 				JTCSignalProducer *sp2 [nPt][nCent];
 				TH1D* hr[nPt][nCent];
@@ -193,28 +195,29 @@ namespace signal2D{
 				TString tmp;
 				for(int i=0; i<nPt; ++i){
 						for(int j=0; j<nCent; ++j){
-								cout<<i<<", "<<j<<endl;
 								sp1[i][j]= new JTCSignalProducer();
 								sp2[i][j]= new JTCSignalProducer();
 								sp1[i][j]->read(f1, name1+Form("_%d_%d", i,j));
 								sp2[i][j]->read(f2, name2+Form("_%d_%d", i,j));
 								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
 								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
-								TH1* h=sp1[i][j]->dr_integral; h->GetXaxis()->SetTitle("#Delta#eta"); h->SetTitle("");
+								TH1* h=sp1[i][j]->dr_integral; // h->SetTitle("");
 								h->SetAxisRange(h->GetMinimum()-h->GetMaximum()*0.1, h->GetMaximum()*1.5, "Y");
 								h->SetMarkerColor(kBlue+2);
 								h->SetLineWidth(1);
-								hr[i][j]=(TH1D*)h->Clone(Form("hr_%d_%d",i,j));
-								cp->addHist(h, i+1, 2-j);
+								hr[i][j]=(TH1D*)h->Clone(Form("hr_%d_%d",i,j)); 
+								cp->addHist(h, j+1, i+1);
 								h=sp2[i][j]->dr_integral; h->SetLineColor(kRed);  h->SetMarkerColor(kRed);
-								cp->addHist(h, i+1, 2-j); 
+								cp->addHist(h, j+1, i+1); 
 								hr[i][j]->Divide(h); hr[i][j]->GetYaxis()->SetNdivisions(505);
-								hr[i][j]->SetAxisRange(0, 2, "Y");  cp->addHist(hr[i][j], i+1, 2-j, 1);
-								cp->CD(i+1, 2-j, 0); tl->DrawLine(0, 0, 1, 0);
+								hr[i][j]->GetXaxis()->SetTitle("#Deltar");
+								hr[i][j]->GetXaxis()->SetTitleColor(kBlack);
+								hr[i][j]->SetAxisRange(0, 2, "Y");  cp->addHist(hr[i][j], j+1,i+1, 1);
+								cp->CD(j+1, i+1, 0); tl->DrawLine(0, 0, 1, 0);
 								tmp = trk_tag[i]+", "+cent_label[j];
 								tx->DrawLatexNDC(0.15,0.87, tmp); 
-								cp->CD(i+1, 2-j, 1); tl->DrawLine(0, 1, 1, 1);
-								cp->draw95Area(i+1,2-j, -3, 3);
+								cp->CD(j+1, i+1, 1); tl->DrawLine(0, 1, 1, 1);
+								cp->draw95Area(j+1, i+1, 0, 1);
 						}
 				}
 				cp->SaveAs("jet_shape_"+name1+"_"+name2+"_overlay.gif");
