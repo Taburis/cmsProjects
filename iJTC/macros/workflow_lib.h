@@ -65,21 +65,21 @@ namespace input_raw2D{
 						h[j][0]->SetLineWidth(1);
 						hr[j]=(TH1D*)h[j][0]->Clone(Form("hr_%d",j));
 						h[j][0]->SetAxisRange(h[j][0]->GetMinimum()-h[j][0]->GetMaximum()*0.1, h[j][0]->GetMaximum()*1.5, "Y");
-						h[j][0]->SetAxisRange(50, 500 ,"X");
-						h[j][0]->SetAxisRange(1e-16, 1e-5,"Y");
+						h[j][0]->SetAxisRange(100, 500 ,"X");
+						h[j][0]->SetAxisRange(1e-13, 1e-4,"Y");
 						cp->addHist(h[j][0], 1, 2-j);
 						cp->CD(1, 2-j, 0); gPad->SetLogy();
 						tmp = name2+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						h[j][1] =(TH1D*) f2->Get(tmp); h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
 						cp->addHist(h[j][1], 1, 2-j); 
 						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
-						//hr[j]->SetAxisRange(0, 2, "Y");  
+						hr[j]->SetAxisRange(100, 500, "X");  
 						cp->addHist(hr[j], 1, 2-j, 1);
 						cp->CD(1, 2-j, 0); tl->DrawLine(-2.5, 0, 2.5, 0);
 						tmp = "Jet spectra: "+cent_label[j];
 						tx->DrawLatexNDC(0.15,0.87, tmp); 
 						cp->CD(1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
-						cp->draw95Area(1,2-j, 0, 500);
+						cp->draw95Area(1,2-j, 100, 500);
 				}
 				cp->SaveAs(name1+"_"+name2+"_jetSpectra.gif");
 		}
@@ -186,6 +186,7 @@ namespace signal2D{
 		}
 
 		void drawJetShapeRatio(TString name1, TString name2, TFile *f1, TFile *f2){
+				float binwidth [] = {0.3, 1, 1,1, 4, 4, 4, 1};
 				auto *cp = new doublePanelFig("cj_"+name1+"_"+name2, "",nCent, nPt);
 				JTCSignalProducer *sp1 [nPt][nCent];
 				JTCSignalProducer *sp2 [nPt][nCent];
@@ -197,8 +198,10 @@ namespace signal2D{
 						for(int j=0; j<nCent; ++j){
 								sp1[i][j]= new JTCSignalProducer();
 								sp2[i][j]= new JTCSignalProducer();
-								sp1[i][j]->read(f1, name1+Form("_%d_%d", i,j));
-								sp2[i][j]->read(f2, name2+Form("_%d_%d", i,j));
+								sp1[i][j]->read(f1, name1+Form("_pTweighted_%d_%d", i,j));
+								sp2[i][j]->read(f2, name2+Form("_pTweighted_%d_%d", i,j));
+								sp1[i][j]->sig->Scale(1.0/binwidth[i]);
+								sp2[i][j]->sig->Scale(1.0/binwidth[i]);
 								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
 								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
 								TH1* h=sp1[i][j]->dr_integral; // h->SetTitle("");

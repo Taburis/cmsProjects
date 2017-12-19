@@ -1,13 +1,13 @@
 
 
 void minJetTree(){
-TFile * f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/Hydjet_cymbalTune_5TeV_1.root");
+		TFile * f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/Hydjet_cymbalTune_5TeV_1.root");
 		TTree *t;
 		t = (TTree*) f->Get("mixing_tree");
 		t->SetBranchStatus("*",0);
 
 		Float_t vz, pthat;
-		Int_t hiBin;
+		Int_t hiBin, HBHENoiseFilterResultRun2Loose, pcollisionEventSelection, pprimaryVertexFilter, phfCoincFilter3;
 		vector<float> *jteta=0, *jtphi=0, *jtpt=0, *corrpt=0, *rawpt=0;
 		vector<float> *geneta=0, *genphi=0, *genpt=0;
 		vector<float> *trackMax=0;
@@ -21,6 +21,15 @@ TFile * f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/Hydjet_cymbalTun
 		vector<float> *otrackMax=0;
 		vector<int > *oflavorForB=0;
 		vector<float> *odiscr_csvV1=0;
+
+		t->SetBranchStatus("HBHENoiseFilterResultRun2Loose", 1);
+		t->SetBranchStatus("pprimaryVertexFilter", 1);
+		t->SetBranchStatus("pcollisionEventSelection", 1);
+		t->SetBranchStatus("phfCoincFilter3", 1);
+		t->SetBranchAddress("HBHENoiseFilterResultRun2Loose", &HBHENoiseFilterResultRun2Loose);
+		t->SetBranchAddress("pprimaryVertexFilter", &pprimaryVertexFilter);
+		t->SetBranchAddress("pcollisionEventSelection", &pcollisionEventSelection);
+		t->SetBranchAddress("phfCoincFilter3", &phfCoincFilter3);
 
 		t->SetBranchStatus("vz", 1);
 		t->SetBranchStatus("hiBin",1);
@@ -74,6 +83,11 @@ TFile * f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/Hydjet_cymbalTun
 		for(Long64_t jentry = 0; jentry<nentries; ++jentry){
 				if(jentry %1000==0) std::cout<<"processing event "<<jentry<<std::endl;
 				t->GetEntry(jentry);
+				if ( HBHENoiseFilterResultRun2Loose ==0) continue;
+				if ( pcollisionEventSelection ==0) continue;
+				if ( pprimaryVertexFilter ==0) continue;
+				if ( phfCoincFilter3 ==0) continue;
+				if ( vz>15 || vz<-15) continue;
 				ohiBin = hiBin;
 				ovz = vz;
 				opthat = pthat;

@@ -35,10 +35,10 @@ class doublePanelFig : public mCanvasBase {
 };
 
 doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int y, float r):
-		mCanvasBase(name, title, x, y, 300, 350)
+		mCanvasBase(name, title, x, y, 300, 400, 0, 0)
 {
 		style()->cd();
-		this->SetMargin(0.3, 0.3, 0.2, 0.10);
+//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
 		this->Divide(ncol,nrow);
 		tl = new TLine();
 		pad= new TPad*[2*ncol*nrow];
@@ -50,10 +50,12 @@ doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int 
 						sname = (this->cd(ncol*(i-1)+j))->GetName();
 						pad[at(i,j, 0)] = new  TPad(sname+"_0", "", 0.0, r, 1, 1);
 						pad[at(i,j, 1)] = new  TPad(sname+"_1", "", 0.0, 0.0, 1, r);
+						pad[at(i,j, 0)]->SetTopMargin(0.05);
 						pad[at(i,j, 0)]->SetBottomMargin(0);
 						pad[at(i,j, 1)]->SetTopMargin(0);
 						pad[at(i,j, 0)]->SetRightMargin(0.05); pad[at(i,j, 0)]->SetTopMargin(0.03);
 						pad[at(i,j, 1)]->SetRightMargin(0.05); 
+						pad[at(i,j, 1)]->SetBottomMargin(0.25); 
 						pad[at(i,j,0)]->Draw(); pad[at(i,j,1)]->Draw();
 						//cout<<pad[at(i,j,1)]->GetName()<<endl;
 				}
@@ -71,6 +73,7 @@ void doublePanelFig::histStyle(TH1* h, int n){
 				h->GetYaxis()->SetLabelSize(0.12);
 				h->GetXaxis()->CenterTitle();
 				h->GetXaxis()->SetTitleSize(0.15);
+				h->GetXaxis()->SetTitleOffset(0.7);
 		}
 		else{
 				h->GetYaxis()->SetLabelSize(0.08);
