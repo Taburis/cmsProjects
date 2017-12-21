@@ -17,6 +17,7 @@ namespace input_raw2D{
 		TH2D* mixing [8][2];
 
 		void get2DInput(TFile *f, TString cap){
+				float trkbinWidth[] = {0.3, 1, 1,1 , 4, 4, 4, 1};
 				TH1D* h1; TString tmp; double njet;
 				for(int i=0; i<nPt; ++i){
 						for(int j=0; j<nCent; ++j){
@@ -28,11 +29,11 @@ namespace input_raw2D{
 								tmp = cap+"_hbJetTrackSignalBackground_"+cent_tag[j]+"_"+cent_tag[j+1]\
 									   +"_Pt120_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
 								raw_sig[i][j] = (TH2D*) f->Get(tmp);
-								raw_sig[i][j]->Scale(1.0/njet);
+								raw_sig[i][j]->Scale(1.0/njet/trkbinWidth[i]);
 								tmp = cap+"_hbJetTrackSignalBackground_pTweighted"+cent_tag[j]+"_"+cent_tag[j+1]\
 									   +"_Pt120_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
 								raw_sig_pTweighted[i][j] = (TH2D*) f->Get(tmp);
-								raw_sig_pTweighted[i][j]->Scale(1.0/njet);
+								raw_sig_pTweighted[i][j]->Scale(1.0/njet/trkbinWidth[i]);
 								tmp = cap+"_hbJetTrackME"+cent_tag[j]+"_"+cent_tag[j+1]\
 									   +"_Pt120_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
 						//		cout<<mixing[i][j]->GetName()<<endl;
@@ -99,3 +100,4 @@ namespace signal2D {
 		void getRecRec(){ getHist(recrec_pb_f, "rec_rec");}
 		void getRecGen(){ getHist(recgen_pb_f, "rec_gen");}
 }
+

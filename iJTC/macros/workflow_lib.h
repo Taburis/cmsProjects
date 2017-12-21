@@ -1,5 +1,6 @@
 
 #include "../lib/import_config.h"
+#include "../lib/import_inclusive.h"
 #ifndef JTCSignalProducer_H
 #include "../lib/JTCSignalProducer.h"
 #endif
@@ -18,6 +19,48 @@ TString trk_tag[] = {"0.7 < p_{T}^{track} < 1 GeV","1 < p_{T}^{track} < 2 GeV",
 		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
 		"12 < p_{T}^{track} < 16 GeV", "p_{T}^{track} > 16 Gev"};
 TString cent_label[]={"Cent. 0-30%", "Cent. 30-100%"};
+
+namespace utility{
+		void quickJSOverlay(TString name1, TString name2, TFile *f1, TFile *f2, float x1, float x2){
+				cout<<"drawing the overlay for "<<name1<<" and "<<name2<<endl;	
+				JTCSignalProducer *sp1 [nPt][nCent];
+				JTCSignalProducer *sp2 [nPt][nCent];
+				auto *cp = new doublePanelFig("c_"+name1+"_"+name2, "", nPt,nCent );
+				TH1D* hr[nPt][nCent];
+				auto tx = new TLatex();  tx->SetTextSize(.08);
+				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
+				TString tmp;
+				for(int i=0; i<nPt; ++i){
+						for(int j=0; j<nCent; ++j){
+								cout<<i<<", "<<j<<endl;
+								sp1[i][j]= new JTCSignalProducer();
+								sp2[i][j]= new JTCSignalProducer();
+								sp1[i][j]->read(f1, name1+Form("_%d_%d", i,j));
+								sp2[i][j]->read(f2, name2+Form("_%d_%d", i,j));
+								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
+								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
+								TH1* h = sp1[i][j]->dr_integral; h->SetTitle("");
+								h->SetMarkerColor(kBlue+2);
+								h->SetLineColor(kBlue+2);
+								h->SetLineWidth(2);
+								h->SetAxisRange(x1, x2, "X");
+								hr[i][j]=(TH1D*)h->Clone(Form("hr_%d_%d",i,j));
+								cp->addHist(h, i+1, 2-j);
+								h=sp2[i][j]->dr_integral; h->SetLineColor(kRed);  h->SetMarkerColor(kRed);
+								h->SetLineWidth(2);
+								cp->addHist(h, i+1, 2-j); 
+								hr[i][j]->Divide(h); hr[i][j]->GetYaxis()->SetNdivisions(505);
+								hr[i][j]->SetAxisRange(0, 2, "Y");  cp->addHist(hr[i][j], i+1, 2-j, 1);
+								cp->CD(i+1, 2-j, 0); tl->DrawLine(x1, 0, x2, 0);
+								tmp = trk_tag[i]+", "+cent_label[j];
+								tx->DrawLatexNDC(0.15,0.87, tmp); 
+								cp->CD(i+1, 2-j, 1); tl->DrawLine(x1, 1,x2, 1);
+								cp->draw95Area(i+1,2-j, x1, x2);
+						}
+				}
+				cp->SaveAs("quickLook_"+name1+"_"+name2+"_overlay.gif");
+		}
+}
 namespace input_raw2D{
 		void pullSig(TString fname){
 				cout<<"pulling singal for "<<fname;
@@ -87,6 +130,34 @@ namespace input_raw2D{
 }
 
 namespace signal2D{
+
+		void pull1D(TString fname, TFile *f){
+				cout<<"pulling 1D histograms for "<<fname;
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				TFile * wf = new TFile(dataDumpPath+fname+"_JTCProj.root","recreate");
+				TString title;
+				cout<<".";
+				for(int i=0; i<nPt ; ++i){
+						cout<<".";
+						for(int j=0; j<nCent ; ++j){
+								sp1[i][j] = new JTCSignalProducer();
+								sp2[i][j] = new JTCSignalProducer();
+								sp1[i][j]->read(f, fname+Form("_%d_%d", i, j));
+								sp1[i][j]->getAllProj(fname+Form("_%d_%d", i, j));
+								sp1[i][j]->WriteTH1();
+								sp2[i][j]->read(f, fname+Form("_pTweighted_%d_%d", i, j));
+								sp2[i][j]->getAllProj(fname+Form("_pTweighted_%d_%d", i, j));
+								sp2[i][j]->WriteTH1();
+						}
+				}
+				cout<<". Done"<<endl;;
+				wf->Close();
+				//clearInput();
+				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCProj.root"<<endl;
+		}
+
+
 		void drawTableWithRatio(TString name1, TString name2, TFile *f1, TFile *f2, bool isNumber = 1){
 				cout<<"drawing the ratio of "<<name1<<" over "<<name2<<endl;	
 				JTCSignalProducer *sp1 [nPt][nCent];
@@ -224,5 +295,39 @@ namespace signal2D{
 						}
 				}
 				cp->SaveAs("jet_shape_"+name1+"_"+name2+"_overlay.gif");
+		}
+}
+
+namespace inclusive_input{
+	void pullSig(TString fname){
+				cout<<"pulling singal for "<<fname;
+				TString trkbin [] = {"0.7", "1", "2", "3", "4", "8", "12", "16", "20", "999"};
+				TString centbin [] = {"0", "30", "100"};
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				TFile * wf = new TFile(dataDumpPath+fname+"_JTCSignal.root","recreate");
+				TString title;
+				cout<<".";
+				for(int i=0; i<nPt ; ++i){
+						cout<<".";
+						for(int j=0; j<nCent ; ++j){
+								title = "track pt in ["+trkbin[i]+", "+trkbin[i+1]\
+										 +"), cent in ["+centbin[j]+", "+centbin[j+1]+"), jet pt in [120, 1000]";
+								raw_sig[i][j]->SetTitle(title);
+								raw_sig_pTweighted[i][j]->SetTitle(title);
+								mixing [i][j]->SetTitle(title);
+								sp1[i][j] = new JTCSignalProducer(raw_sig[i][j], mixing[i][j]);
+								sp1[i][j]->getSignal(fname+Form("_%d_%d", i, j));
+								sp1[i][j]->WriteTH2();
+								sp2[i][j] = new JTCSignalProducer(raw_sig_pTweighted[i][j], mixing[i][j]);
+								sp2[i][j]->getSignal(fname+Form("_pTweighted_%d_%d", i, j));
+								sp2[i][j]->WriteTH2();
+//								cout<<sp2[i][j]->sig->GetName()<<endl;
+						}
+				}
+				cout<<". Done"<<endl;;
+				wf->Close();
+				//clearInput();
+				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCSignal.root"<<endl;
 		}
 }
