@@ -21,8 +21,9 @@ void plot_js_normal(){
 		js_dr_err_all[i]->SetFillStyle(1001);
 		js_dr_err_all[i]->SetFillColorAlpha(kGray+3,.4);
 		js_dr_err_all[i]->SetMarkerStyle(20);
-		js_dr_err_all[i]->SetMarkerSize(1);
-		js_dr_err_all[i]->SetMarkerColor(0);
+		js_dr_err_all[i]->SetMarkerSize(1.6);
+		js_dr_err_all[i]->SetMarkerColor(kBlack);
+		js_dr_err_all[i]->SetLineColor(kBlack);
 
 		st[i]= new stackHist(Form("st_%d",i));
 		st[i]->setRange(0., 0.99, "x");
@@ -153,23 +154,32 @@ void plot_js_normal(){
 	lt5->SetLineColor(kWhite);
 	lt5->SetFillColor(kWhite);
 
-	lt1->AddEntry(st[4]->hist_trunk.at(0), "0.7 < p_{T}^{track}< 1 GeV","f");
-	lt1->AddEntry(st[4]->hist_trunk.at(1), "1 < p_{T}^{track}< 2 GeV","f");
-	lt1->AddEntry(st[4]->hist_trunk.at(2), "2 < p_{T}^{track}< 3 GeV","f");
 
-	lt2->AddEntry(st[4]->hist_trunk.at(3), "3 < p_{T}^{track}< 4 GeV","f");
-	lt2->AddEntry(st[4]->hist_trunk.at(4), "4 < p_{T}^{track}< 8 GeV","f");
-	lt2->AddEntry(st[4]->hist_trunk.at(5), "8 < p_{T}^{track}< 12 GeV","f");
+	lt1->AddEntry(st[4]->hist_trunk.at(0), "0.7 < p_{T}^{trk}< 1 GeV","f");
+	lt1->AddEntry(st[4]->hist_trunk.at(1), "1 < p_{T}^{trk}< 2 GeV","f");
+	lt1->AddEntry(st[4]->hist_trunk.at(2), "2 < p_{T}^{trk}< 3 GeV","f");
+
+	lt2->AddEntry(st[4]->hist_trunk.at(3), "3 < p_{T}^{trk}< 4 GeV","f");
+	lt2->AddEntry(st[4]->hist_trunk.at(4), "4 < p_{T}^{trk}< 8 GeV","f");
+	lt2->AddEntry(st[4]->hist_trunk.at(5), "8 < p_{T}^{trk}< 12 GeV","f");
 
 
-	lt3->AddEntry(st[4]->hist_trunk.at(6), "12 < p_{T}^{track}< 16 GeV","f");
-	lt3->AddEntry(st[4]->hist_trunk.at(7), "16 < p_{T}^{track}< 20 GeV","f");
-	lt3->AddEntry(st[4]->hist_trunk.at(8), "20 < p_{T}^{track}< 300 GeV","f");
+	lt3->AddEntry(st[4]->hist_trunk.at(6), "12 < p_{T}^{trk}< 16 GeV","f");
+	lt3->AddEntry(st[4]->hist_trunk.at(7), "16 < p_{T}^{trk}< 20 GeV","f");
+	lt3->AddEntry(st[4]->hist_trunk.at(8), "20 < p_{T}^{trk}< 300 GeV","f");
 
 	//lt4->AddEntry(ratio_auxi[0], "#rho(#Deltar)_{PbPb}/#rho(#Deltar)_{pp}");
-	lt4->AddEntry(ratio_auxi[0], "0.7 < p_{T}^{track}< 300 GeV","lpfe");
+	lt4->AddEntry(ratio_auxi[0], "0.7 < p_{T}^{trk}< 300 GeV","lpfe");
 	c->CD(9);
 	lt4->Draw();
+
+	c->CD(1);
+	TLegend* lt6 = new TLegend(0.3,0.7,0.98,0.85);
+	lt6->SetTextSize(0.07);
+	lt6->SetLineColor(kWhite);
+	lt6->SetFillColor(kWhite);
+	lt6->AddEntry(js_dr_err_all[0], "0.7 < p_{T}^{trk}< 300 GeV","lpfe");
+	lt6->Draw();
 
 	c->CD(2);
 //	lt5->AddEntry(js_dr_err_all[0], "0.7 < p_{T}^{track}< 20 GeV","lpfe");
@@ -185,11 +195,11 @@ void plot_js_normal(){
 	c->cd(0);
 	tl->SetTextFont(62);
 	tl->SetTextSize(0.035);
-	tl->DrawLatexNDC(0.45, 0.94, "CMS");
+	tl->DrawLatexNDC(0.5, 0.94, "CMS");
 	
 	tl->SetTextFont(42);
 	tl->SetTextSize(0.035);
-	tl->DrawLatexNDC(0.55, 0.94, "Jet Shapes by #Deltar");
+	tl->DrawLatexNDC(0.6, 0.94, "Jet shapes");
 
 	tl->SetTextSize(0.03);
 	tl->DrawLatexNDC(.4, .9, "pp 27.4 pb^{-1} (5.02 TeV)  PbPb 404 #mub^{-1} (5.02 TeV)");

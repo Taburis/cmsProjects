@@ -153,7 +153,6 @@ void signalFactoryBase::drIntegral(TH2D* signal, TH1D* drDist, bool isStatError)
 						// integrand f(x,y)dxdy
 						content = signal->GetBinContent(jx,jy)*xwidth*ywidth;
 						if( content ) {
-								drDist->Fill(dr, content);
 								if(isStatError){
 										error = sqrt(pow(drDist->GetBinError(drDist->FindBin(dr)),2)+\
 														pow(signal->GetBinError(jx,jy)*xwidth*ywidth,2));
@@ -168,6 +167,7 @@ void signalFactoryBase::drIntegral(TH2D* signal, TH1D* drDist, bool isStatError)
 														pow(err,2));
 										//	}
 								}
+								drDist->Fill(dr, content);
 								drDist->SetBinError(drDist->FindBin(dr), error);
 						}
 				}
@@ -177,7 +177,7 @@ void signalFactoryBase::drIntegral(TH2D* signal, TH1D* drDist, bool isStatError)
 				error= drDist->GetBinError(i);
 				width= drDist->GetBinWidth(i);
 				drDist->SetBinContent(i, content/width);
-				if( !isStatError) drDist->SetBinError(i, error/width);
+				if( isStatError) drDist->SetBinError(i, error/width);
 				else drDist->SetBinError(i, content*error/width);
 		}
 		return;
@@ -287,6 +287,7 @@ void signalFactoryBase::doDrPhaseCorrection(TH2D* signal, TH1D* h1){
 }
 
 TH1* signalFactoryBase::invariantRebin(TH1* h, TString name , int n, const Double_t * bins){
+		//input h needs to be invariant 
 		for(int i=1; i<h->GetNbinsX()+1; ++i){
 				Double_t wd = h->GetBinWidth(i);
 				h->SetBinContent(i, h->GetBinContent(i)*wd);

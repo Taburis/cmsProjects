@@ -29,7 +29,9 @@ class JTCSignalProducer :public signalFactoryBase {
 				void WriteTH2();
 				void WriteTH1();
 				void getAllProj(TString name);
-				void drawBkgCheck();
+				void drawBkgCheck(bool doX = 1);
+				void drawSideBandCheck();
+				void histStyle(TH1* h);
 		public :
 				// 3 steps to get the final signal:
 				// 1: get the raw_sig by skiming
@@ -44,7 +46,7 @@ class JTCSignalProducer :public signalFactoryBase {
 				TH1D* dr_integral = NULL;
 				bool doSmoothME = true;
 				float sideMin = 1.5, sideMax = 2.5;
-				TH1D *sig_deta=0, *sig_dphi=0, *sig_step2_deta=0, *sig_step2_dphi=0,*bkg_deta=0, *bkg_dphi=0,*side_dphi=0;
+				TH1D *sig_deta=0, *sig_dphi=0, *sig_step2_deta=0, *sig_step2_dphi=0,*bkg_deta=0, *bkg_dphi=0,*side_deta=0;
 };
 
 TH2D* JTCSignalProducer::getSignal(TString name){
@@ -59,7 +61,7 @@ TH2D* JTCSignalProducer::getSignal(TString name){
 		mix_normalized= mixingTableMaker(mix, doSmoothME);
 		mix_normalized->SetName("smoothed_mixing_"+name);
 		sig->Divide(mix_normalized);
-		sig_step2 = (TH2D*) raw_sig->Clone("sig_mix_corrected_"+name);
+		sig_step2 = (TH2D*) sig->Clone("sig_mix_corrected_"+name);
 		bkg = (TH2D*) getV2Bkg(sig,sideMin , sideMax );
 		bkg->SetName("bkg_"+name);
 		sig->Add(sig, bkg, 1, -1);
@@ -128,7 +130,7 @@ TH1* JTCSignalProducer::projX(bool doRebin, TH2D*h2, float x, float y){
 TH1* JTCSignalProducer::projY(bool doRebin, TH2D*h2, float x, float y){
 		// here h2 needs to be invariant 
 		TH1* h=projectionY(h2, x, y);
-		h->Scale(h2->GetYaxis()->GetBinWidth(1));  
+		h->Scale(h2->GetXaxis()->GetBinWidth(1));  
 		if(doRebin){
 				TString name = h->GetName();
 				name = "rebined_"+name;
@@ -156,14 +158,15 @@ void JTCSignalProducer::getAllProj(TString name){
 		tmp = "bkg_dphi_"+name;
 		bkg_dphi = (TH1D*) projY(1, bkg, -1, 1); bkg_dphi->SetName(tmp);
 
-		tmp = "side_dphi_"+name;
-		side_dphi = (TH1D*) projY(1, sig, -1, 1); side_dphi->SetName(tmp);
+		tmp = "side_deta_"+name;
+		side_deta = (TH1D*) projX(1, sig, 1.2, 2.2); side_deta->SetName(tmp);
 }
+
 
 void JTCSignalProducer::WriteTH1(){
 		sig_deta->Write(); sig_step2_deta->Write(); bkg_deta->Write();
 		sig_dphi->Write(); sig_step2_dphi->Write(); bkg_dphi->Write();
-		side_dphi->Write();
+		side_deta->Write();
 }
 
 void JTCSignalProducer::read1D(TFile *f , TString name){
@@ -178,6 +181,57 @@ void JTCSignalProducer::read1D(TFile *f , TString name){
 		tmp = "bkg_deta_"+name; bkg_deta=(TH1D*) f->Get(tmp);
 		tmp = "bkg_dphi_"+name; bkg_dphi=(TH1D*) f->Get(tmp);
 
-		tmp = "side_dphi_"+name; bkg_dphi=(TH1D*) f->Get(tmp);
+		tmp = "side_deta_"+name; side_deta=(TH1D*) f->Get(tmp);
 }
+
+void JTCSignalProducer::drawBkgCheck(bool doX){
+		TH1 *h1, *h2;
+		if(doX) {
+				h1 = sig_step2_deta; 
+				h2 = bkg_deta; 
+		}
+		else {
+				h1 =sig_step2_dphi; 
+				h2 =bkg_dphi; 
+		}
+		histStyle(h1);
+		float mean = h2->GetBinContent(h1->FindBin(0.5));
+		float dvt =  h2->GetBinError(h1->FindBin(0.5));
+		h1->SetAxisRange(mean-4*dvt, mean+6*dvt, "Y");
+		h1->SetLineWidth(2);
+		h2->SetLineWidth(2);
+		h1->SetLineColor(kBlack);
+		h2->SetLineColor(kRed);
+		h1->Draw("same");
+		h2->Draw("same");
+}
+
+
+void JTCSignalProducer::drawSideBandCheck(){
+		TH1 *h1, *h2;
+		h1 = sig_deta; 
+		h2 = side_deta; 
+		cout<<h2->GetName()<<endl;
+		histStyle(h1);
+		float mean = h2->GetBinContent(h1->FindBin(0));
+		float dvt =  h2->GetBinError(h1->FindBin(0));
+		h1->SetAxisRange(mean-6*dvt, mean+10*dvt, "Y");
+		h1->SetLineWidth(2);
+		h2->SetLineWidth(2);
+		h1->SetLineColor(kBlack);
+		h2->SetLineColor(kOrange+7);
+		h1->Draw("same");
+		h2->Draw("same");
+}
+
+void JTCSignalProducer::histStyle(TH1* h){
+		h->SetTitle("");
+		h->GetXaxis()->SetLabelSize(0.08);
+		h->GetYaxis()->SetLabelSize(0.08);
+		h->GetXaxis()->CenterTitle();
+		h->GetXaxis()->SetTitleOffset(1);
+		h->GetXaxis()->SetTitleSize(0.08);
+		h->GetYaxis()->SetTitleSize(0.08);
+}
+
 #endif 

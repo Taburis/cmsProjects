@@ -10,7 +10,13 @@
 #ifndef xPlotStyle_H
 #include "../lib/xPlotStyle.h"
 #endif
-
+// namespace :
+//  utility
+//  input_raw2D
+//  signal2D
+//  signal1D
+//  inclusive_input
+//  ana_fig
 //const int nPt = 8; const int nCent =2 ;
 TString dataDumpPath = "/Users/tabris/cmsProjects/iJTC/dataSet/correlation/";
 
@@ -60,7 +66,76 @@ namespace utility{
 				}
 				cp->SaveAs("quickLook_"+name1+"_"+name2+"_overlay.gif");
 		}
+		void quickJSratio(TString name, JTCSignalProducer* sp1[8][2], JTCSignalProducer* sp2[8][2]){
+				float x1=0, x2=0.99;
+				auto *cp = new doublePanelFig("c_"+name, "", nPt,nCent );
+				TH1D* hr[nPt][nCent];
+				auto tx = new TLatex();  tx->SetTextSize(.08);
+				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
+				TString tmp;
+				for(int i=0; i<nPt; ++i){
+						for(int j=0; j<nCent; ++j){
+								TH1* h = sp1[i][j]->dr_integral; h->SetTitle("");
+								h->SetMarkerColor(kBlue+2);
+								h->SetLineColor(kBlue+2);
+								h->SetLineWidth(2);
+								h->SetAxisRange(x1, x2, "X");
+								h->SetAxisRange(0, 1.4*h->GetMaximum(), "Y");
+								hr[i][j]=(TH1D*)h->Clone(Form("hr_%d_%d",i,j));
+								cp->addHist(h, i+1, 2-j);
+								h=sp2[i][j]->dr_integral; h->SetLineColor(kRed);  h->SetMarkerColor(kRed);
+								h->SetLineWidth(2);
+								cp->addHist(h, i+1, 2-j); 
+								hr[i][j]->Divide(h); hr[i][j]->GetYaxis()->SetNdivisions(505);
+								hr[i][j]->SetAxisRange(0, 2, "Y");  cp->addHist(hr[i][j], i+1, 2-j, 1);
+								cp->CD(i+1, 2-j, 0); tl->DrawLine(x1, 0, x2, 0);
+								tmp = trk_tag[i]+", "+cent_label[j];
+								tx->DrawLatexNDC(0.15,0.87, tmp); 
+								cp->CD(i+1, 2-j, 1); tl->DrawLine(x1, 1,x2, 1);
+								cp->draw95Area(i+1,2-j, x1, x2);
+						}
+				}
+				cp->SaveAs("quickLook_"+name+"_ratio.gif");
+		}
 }
+
+namespace ana_fig{
+		void closure(TString name, TString name1, TString name2, TFile *f1, TFile *f2, bool isNumber = 1){
+				// need to add the systematic uncertainty
+//		void drRatio(TString name, int n, int m, JTCSignalProducer* sp1[][m], JTCSignalProducer* sp2[][m]){
+				auto cp1 = new mCanvasLoose("cp1", "", 7, 2, 300, 125);
+				TH1D * hr [8][2];
+				TH1D * hr2[8][2];
+				TString tmp;
+				auto tx = new TLatex();  tx->SetTextSize(.08);
+				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				for(int i=1; i<nPt; ++i){
+						for(int j=0; j<nCent; ++j){
+								sp1[i][j] = new JTCSignalProducer();
+								sp2[i][j] = new JTCSignalProducer();
+								if(!isNumber) {sp1[i][j]->read(f1, name1+Form("_pTweighted_%d_%d", i,j));
+										sp2[i][j]->read(f2, name2+Form("_pTweighted_%d_%d", i,j));}
+								else {  sp1[i][j]->read(f1, name1+Form("_%d_%d", i,j));
+										sp2[i][j]->read(f2, name2+Form("_%d_%d", i,j));}
+								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
+								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
+								hr[i][j]=(TH1D*)sp1[i][j]->dr_integral->Clone(Form("ratio_%d_%d",i,j));
+								hr[i][j]->Divide(sp2[i][j]->dr_integral);
+								hr2[i][j]=(TH1D*)hr[i][j]->Clone(Form("ratio2_%d_%d",i,j));
+
+								tmp = trk_tag[i]+", "+cent_label[j];
+								cp1->CD(i, 2-j);
+								hr[i][j]->SetTitle("");
+								hr[i][j]->Draw();
+								tx->DrawLatexNDC(0.15,0.87, tmp); 
+						}
+				}
+				cp1->SaveAs(name+"_closure.gif");
+		}
+}
+
 namespace input_raw2D{
 		void pullSig(TString fname){
 				cout<<"pulling singal for "<<fname;
@@ -130,13 +205,29 @@ namespace input_raw2D{
 }
 
 namespace signal2D{
+		void getDr(TString name1, TString name2, TFile *f1, TFile *f2, bool isNumber = 1){
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				TString tmp;
+				for(int i=0; i<nPt; ++i){
+						for(int j=0; j<nCent; ++j){
+								sp1[i][j] = new JTCSignalProducer();
+								sp2[i][j] = new JTCSignalProducer();
+								if(!isNumber) {sp1[i][j]->read(f1, name1+Form("_pTweighted_%d_%d", i,j));
+										sp2[i][j]->read(f2, name2+Form("_pTweighted_%d_%d", i,j));}
+								else {  sp1[i][j]->read(f1, name1+Form("_%d_%d", i,j));
+										sp2[i][j]->read(f2, name2+Form("_%d_%d", i,j));}
+								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
+								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
+								}
+				}
+		}
 
 		void pull1D(TString fname, TFile *f){
 				cout<<"pulling 1D histograms for "<<fname;
 				JTCSignalProducer *sp1[8][2];
 				JTCSignalProducer *sp2[8][2];
 				TFile * wf = new TFile(dataDumpPath+fname+"_JTCProj.root","recreate");
-				TString title;
 				cout<<".";
 				for(int i=0; i<nPt ; ++i){
 						cout<<".";
@@ -156,6 +247,7 @@ namespace signal2D{
 				//clearInput();
 				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCProj.root"<<endl;
 		}
+
 
 
 		void drawTableWithRatio(TString name1, TString name2, TFile *f1, TFile *f2, bool isNumber = 1){
@@ -258,10 +350,10 @@ namespace signal2D{
 
 		void drawJetShapeRatio(TString name1, TString name2, TFile *f1, TFile *f2){
 				float binwidth [] = {0.3, 1, 1,1, 4, 4, 4, 1};
-				auto *cp = new doublePanelFig("cj_"+name1+"_"+name2, "",nCent, nPt);
 				JTCSignalProducer *sp1 [nPt][nCent];
 				JTCSignalProducer *sp2 [nPt][nCent];
 				TH1D* hr[nPt][nCent];
+				auto *cp = new doublePanelFig("cj_"+name1+"_"+name2, "",nCent, nPt);
 				auto tx = new TLatex();  tx->SetTextSize(.08);
 				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
 				TString tmp;
@@ -271,8 +363,6 @@ namespace signal2D{
 								sp2[i][j]= new JTCSignalProducer();
 								sp1[i][j]->read(f1, name1+Form("_pTweighted_%d_%d", i,j));
 								sp2[i][j]->read(f2, name2+Form("_pTweighted_%d_%d", i,j));
-								sp1[i][j]->sig->Scale(1.0/binwidth[i]);
-								sp2[i][j]->sig->Scale(1.0/binwidth[i]);
 								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
 								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
 								TH1* h=sp1[i][j]->dr_integral; // h->SetTitle("");
@@ -298,14 +388,77 @@ namespace signal2D{
 		}
 }
 
+namespace signal1D {
+		void checkBkg(TString name){
+				TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name+"_JTCProj.root";
+				TFile *f = TFile::Open(tmp);
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				auto tx = new TLatex();  tx->SetTextSize(.08);
+				auto cp1 = new mCanvasLoose("bkgCheck_"+name, "", nPt, 2*nCent);
+				auto cp2 = new mCanvasLoose("bkgCheck_JS_"+name, "", nPt, 2*nCent);
+				auto cp3 = new mCanvasLoose("bkgCheck_sideBand"+name, "", nPt, 2*nCent);
+				for(int i=0; i<nPt ; ++i){
+						for(int j=0; j<nCent ; ++j){
+								tmp = trk_tag[i]+", "+cent_label[j];
+								sp1[i][j] = new JTCSignalProducer();
+								sp2[i][j] = new JTCSignalProducer();
+								sp1[i][j]->read1D(f, name+Form("_%d_%d", i, j));
+								sp2[i][j]->read1D(f, name+Form("_pTweighted_%d_%d", i, j));
+								cp1->CD(i+1, 2-j);
+								sp1[i][j]->drawBkgCheck();
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+								cp1->CD(i+1, 4-j);
+								sp1[i][j]->drawBkgCheck(0);
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+								cp2->CD(i+1, 2-j);
+								sp2[i][j]->drawBkgCheck();
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+								cp2->CD(i+1, 4-j);
+								sp2[i][j]->drawBkgCheck(0);
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+
+								cp3->CD(i+1, 2-j);
+								sp1[i][j]->drawSideBandCheck();
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+								cp3->CD(i+1, 4-j);
+								sp2[i][j]->drawSideBandCheck();
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+						}
+				}
+				cp1->SaveAs("bkgCheck_"+name+".gif");
+				cp2->SaveAs("bkgCheck_JS_"+name+".gif");
+				cp3->SaveAs("bkgCheck_sideBand_"+name+".gif");
+		}
+}
+
+
 namespace inclusive_input{
-	void pullSig(TString fname){
+		void drawRatio_sub0(TH2D* h1[8][2],TH2D* mix1[8][2], TH2D* h2[8][2], TH2D* mix2[8][2]){
+				TString trkbin [] = {"0.7", "1", "2", "3", "4", "8", "12", "16", "20", "999"};
+				TString centbin [] = {"0", "30", "100"};
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				TFile* wf = TFile::Open("debug.root","recreate");
+				for(int i=0; i<8; ++i){
+						for(int j=0; j<2; ++j){
+								sp1[i][j]=new JTCSignalProducer(h1[i][j], mix1[i][j]);
+								sp2[i][j]=new JTCSignalProducer(h2[i][j], mix2[i][j]);
+								sp1[i][j]->getSignal(Form("h1_%d_%d",i,j));
+								sp2[i][j]->getSignal(Form("h2_%d_%d",i,j));
+								sp1[i][j]->doDrIntegral(Form("sub0_1_%d_%d", i, j));
+								sp2[i][j]->doDrIntegral(Form("sub0_2_%d_%d", i, j));
+								sp2[i][j]->WriteTH2();
+						}
+				}
+				utility::quickJSratio("GenGenSub0", sp1, sp2);
+		}
+	void sub0Ratio(TString fname){
 				cout<<"pulling singal for "<<fname;
 				TString trkbin [] = {"0.7", "1", "2", "3", "4", "8", "12", "16", "20", "999"};
 				TString centbin [] = {"0", "30", "100"};
 				JTCSignalProducer *sp1[8][2];
 				JTCSignalProducer *sp2[8][2];
-				TFile * wf = new TFile(dataDumpPath+fname+"_JTCSignal.root","recreate");
 				TString title;
 				cout<<".";
 				for(int i=0; i<nPt ; ++i){
@@ -316,18 +469,13 @@ namespace inclusive_input{
 								raw_sig[i][j]->SetTitle(title);
 								raw_sig_pTweighted[i][j]->SetTitle(title);
 								mixing [i][j]->SetTitle(title);
-								sp1[i][j] = new JTCSignalProducer(raw_sig[i][j], mixing[i][j]);
-								sp1[i][j]->getSignal(fname+Form("_%d_%d", i, j));
-								sp1[i][j]->WriteTH2();
 								sp2[i][j] = new JTCSignalProducer(raw_sig_pTweighted[i][j], mixing[i][j]);
-								sp2[i][j]->getSignal(fname+Form("_pTweighted_%d_%d", i, j));
-								sp2[i][j]->WriteTH2();
-//								cout<<sp2[i][j]->sig->GetName()<<endl;
+								sp1[i][j]->sig=raw_sig[i][j];
+								sp2[i][j]->sig=raw_sig[i][j];
 						}
 				}
 				cout<<". Done"<<endl;;
-				wf->Close();
 				//clearInput();
-				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCSignal.root"<<endl;
 		}
 }
+

@@ -18,6 +18,43 @@ mCanvasBase::mCanvasBase(const char * name, const char *title, int x, int y, int
 		nrow(x), ncol(y), TCanvas(name, title , y*w+wm, x*h+hm)
 {}
 
+class mCanvasLoose : public mCanvasBase {
+		public: 
+				mCanvasLoose(const char *name, const char *title , int n, int m , float width = 300, float height=275);
+				void CD(int i, int j){this->cd((i-1)*ncol+j);}
+				void drawHist(TH1* h, int i, int j);
+				void histStyle(TH1* h);
+		public:
+				TLine *tl; TBox *box;
+};
+
+mCanvasLoose::mCanvasLoose(const char *name, const char *title , int x, int y , float width, float height):
+		mCanvasBase(name, title, x, y, width, height, 0, 0)
+{
+		//		style()->cd();
+		//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
+		gStyle->SetOptStat(0);
+		this->Divide(ncol,nrow);
+		tl = new TLine();
+		box = new TBox(); box->SetFillColorAlpha(kGray+1, 0.5);
+}
+
+void mCanvasLoose::drawHist(TH1* h, int i, int j){
+		CD(i,j);
+		gPad->SetMargin(0.15,0.05, 0.15, 0.05);
+		histStyle(h);
+		h->Draw("same");
+}
+
+void mCanvasLoose::histStyle(TH1 *h){
+		h->GetXaxis()->SetLabelSize(0.07);
+		h->GetYaxis()->SetLabelSize(0.07);
+		h->GetXaxis()->CenterTitle();
+		h->GetXaxis()->SetTitleOffset(0.8);
+		h->GetXaxis()->SetTitleSize(0.09);
+		h->GetYaxis()->SetTitleSize(0.09);
+}
+
 class doublePanelFig : public mCanvasBase {
 		public :
 				doublePanelFig(const char *name, const char *title, int n, int m, float r=0.37);
@@ -38,7 +75,7 @@ doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int 
 		mCanvasBase(name, title, x, y, 300, 400, 0, 0)
 {
 		style()->cd();
-//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
+		//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
 		this->Divide(ncol,nrow);
 		tl = new TLine();
 		pad= new TPad*[2*ncol*nrow];
@@ -89,7 +126,7 @@ TStyle * doublePanelFig::style(){
 		st->SetOptStat(0);
 		st->SetStatStyle(0);
 		st->SetFrameFillColor(0);
-//		st->SetFrameFillStyle(1001);
+		//		st->SetFrameFillStyle(1001);
 		st->SetFrameLineWidth(0);
 		st->SetCanvasBorderMode(0);
 		st->SetPadBorderMode(0); st->SetPadColor(0); st->SetPadBorderSize(0);
@@ -97,6 +134,6 @@ TStyle * doublePanelFig::style(){
 		st->SetPadTickX(1); st->SetPadTickY(1);
 		st->SetTitleX(2);
 		return st;
-//		st->SetStats(0);
+		//		st->SetStats(0);
 }
 #endif

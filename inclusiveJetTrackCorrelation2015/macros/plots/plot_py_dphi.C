@@ -100,7 +100,7 @@ void plot_py_dphi(){
 				c->CD(12-i);
 				diff[i]->drawDiff("r");
 				diff[i]->hst_up->GetXaxis()->SetTitleOffset(1);
-				diff[i]->hst_up->GetXaxis()->SetTitle("#Delta #phi");
+				diff[i]->hst_up->GetXaxis()->SetTitle("#Delta#phi");
 				if( i<3 )  {
 						diff[i]->hst_up->GetXaxis()->SetTitleOffset(0.8);
 						diff[i]->hst_up->GetXaxis()->SetTitleSize(0.09);
@@ -155,17 +155,17 @@ void plot_py_dphi(){
 		lt3->SetLineColor(kWhite);
 		lt3->SetFillColor(kWhite);
 
-		lt1->AddEntry(st[4]->hist_trunk.at(0), "0.7 < p_{T}^{track}< 1 GeV","f");
-		lt1->AddEntry(st[4]->hist_trunk.at(1), "1 < p_{T}^{track}< 2 GeV","f");
-		lt1->AddEntry(st[4]->hist_trunk.at(2), "2 < p_{T}^{track}< 3 GeV","f");
+		lt1->AddEntry(st[4]->hist_trunk.at(0), "0.7 < p_{T}^{trk}< 1 GeV","f");
+		lt1->AddEntry(st[4]->hist_trunk.at(1), "1 < p_{T}^{trk}< 2 GeV","f");
+		lt1->AddEntry(st[4]->hist_trunk.at(2), "2 < p_{T}^{trk}< 3 GeV","f");
 
-		lt2->AddEntry(st[4]->hist_trunk.at(3), "3 < p_{T}^{track}< 4 GeV","f");
-		lt2->AddEntry(st[4]->hist_trunk.at(4), "4 < p_{T}^{track}< 8 GeV","f");
-		lt2->AddEntry(st[4]->hist_trunk.at(5), "8 < p_{T}^{track}< 12 GeV","f");
+		lt2->AddEntry(st[4]->hist_trunk.at(3), "3 < p_{T}^{trk}< 4 GeV","f");
+		lt2->AddEntry(st[4]->hist_trunk.at(4), "4 < p_{T}^{trk}< 8 GeV","f");
+		lt2->AddEntry(st[4]->hist_trunk.at(5), "8 < p_{T}^{trk}< 12 GeV","f");
 
-		lt3->AddEntry(st[4]->hist_trunk.at(6), "12 < p_{T}^{track}< 16 GeV","f");
-		lt3->AddEntry(st[4]->hist_trunk.at(7), "16 < p_{T}^{track}< 20 GeV","f");
-		lt3->AddEntry(py_dphi_err_all[0], "0.7 < p_{T}^{track}< 20 GeV","lpfe");
+		lt3->AddEntry(st[4]->hist_trunk.at(6), "12 < p_{T}^{trk}< 16 GeV","f");
+		lt3->AddEntry(st[4]->hist_trunk.at(7), "16 < p_{T}^{trk}< 20 GeV","f");
+		lt3->AddEntry(py_dphi_err_all[0], "0.7 < p_{T}^{trk}< 20 GeV","lpfe");
 		c->CD(2);
 
 		TLine *line = new TLine();
@@ -178,7 +178,7 @@ void plot_py_dphi(){
 
 		c->cd(0);
 		lb->drawText("CMS", 0.45, 0.94, 0);
-		lb->drawText("Particle Yield by #Delta#phi", 0.55, 0.94, 3);
+		lb->drawText("Particle yield vs. #Delta#phi", 0.55, 0.94, 3);
 
 		lb->drawText("pp 27.4 pb^{-1} (5.02 TeV)  PbPb 404 #mub^{-1} (5.02 TeV)", 0.38, 0.9, 4);
 		lb->drawText("anti-k_{T} R=0.4 jets, p_{T}> 120 GeV, |#eta_{jet}|<1.6", 0.45, 0.86, 5);
