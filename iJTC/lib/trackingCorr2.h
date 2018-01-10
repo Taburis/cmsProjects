@@ -20,16 +20,16 @@ class trackingCorr2  {
 	public: 
 		trackingCorr2(inputTree* tt):
 			t(tt),
-			ntrkpt(trackingCorr2Config::ntrkpt_in),
-			ncent (trackingCorr2Config::ncent_in),
-			trkpt (trackingCorr2Config::trkpt_in),
-			cent  (trackingCorr2Config::cent_in),
-			nx    (trackingCorr2Config::neta),
-			ny    (trackingCorr2Config::nphi),
-			xmin  (trackingCorr2Config::etamin),
-			xmax  (trackingCorr2Config::etamax),
-			ymin  (trackingCorr2Config::phimin),
-			ymax  (trackingCorr2Config::phimax)
+			ntrkpt(trackingCorrConfig::ntrkpt_in),
+			ncent (trackingCorrConfig::ncent_in),
+			trkpt (trackingCorrConfig::trkpt_in),
+			cent  (trackingCorrConfig::cent_in),
+			nx    (trackingCorrConfig::neta),
+			ny    (trackingCorrConfig::nphi),
+			xmin  (trackingCorrConfig::etamin),
+			xmax  (trackingCorrConfig::etamax),
+			ymin  (trackingCorrConfig::phimin),
+			ymax  (trackingCorrConfig::phimax)
 	{
 		readonly =0;
 		corr=NULL;
@@ -47,16 +47,16 @@ class trackingCorr2  {
 		}
 	};
 		trackingCorr2(TFile *ff ):
-			ntrkpt(trackingCorr2Config::ntrkpt_in),
-			ncent (trackingCorr2Config::ncent_in),
-			trkpt (trackingCorr2Config::trkpt_in),
-			cent  (trackingCorr2Config::cent_in),
-			nx    (trackingCorr2Config::neta),
-			ny    (trackingCorr2Config::nphi),
-			xmin  (trackingCorr2Config::etamin),
-			xmax  (trackingCorr2Config::etamax),
-			ymin  (trackingCorr2Config::phimin),
-			ymax  (trackingCorr2Config::phimax),
+			ntrkpt(trackingCorrConfig::ntrkpt_in),
+			ncent (trackingCorrConfig::ncent_in),
+			trkpt (trackingCorrConfig::trkpt_in),
+			cent  (trackingCorrConfig::cent_in),
+			nx    (trackingCorrConfig::neta),
+			ny    (trackingCorrConfig::nphi),
+			xmin  (trackingCorrConfig::etamin),
+			xmax  (trackingCorrConfig::etamax),
+			ymin  (trackingCorrConfig::phimin),
+			ymax  (trackingCorrConfig::phimax),
 			f(ff)
 	{
 		readonly = 1;
@@ -135,10 +135,10 @@ void trackingCorr2::Read(){
 void trackingCorr2::getCorr(TString file){
 
 	TFile* wf = TFile::Open(file, "recreate");
-	ntrkpt_out = trackingCorr2Config::ntrkpt_out;
-	trkpt_out = trackingCorr2Config::trkpt_out;
-	ncent_out = trackingCorr2Config::ncent_out;
-	cent_out = trackingCorr2Config::cent_out;
+	ntrkpt_out = trackingCorrConfig::ntrkpt_out;
+	trkpt_out =  trackingCorrConfig::trkpt_out;
+	ncent_out =  trackingCorrConfig::ncent_out;
+	cent_out =   trackingCorrConfig::cent_out;
 
 	/*
 	//for gettign aux file to fix the hole problem
