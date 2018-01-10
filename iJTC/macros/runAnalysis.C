@@ -7,6 +7,7 @@ void runAnalysis(){
 		//input_raw2D::get2DInput_RecGen(); input_raw2D::pullSig("rec_gen");
 		//input_raw2D::get2DInput_RecRec(); input_raw2D::pullSig("rec_rec");
 		//input_raw2D::get2DInput_GenRec(); input_raw2D::pullSig("gen_rec");
+		input_raw2D::get2DInput_GenGen_sub0(); input_raw2D::pullSig("gen_gen_sub0");
 		//input_raw2D::get2DInput_RecGen_nsub0(); input_raw2D::pullSig("rec_gen_nsub0");
 		//input_raw2D::get2DInput_RecGen_sub0();  input_raw2D::pullSig("rec_gen_sub0");
 
@@ -18,14 +19,16 @@ void runAnalysis(){
 		//input_raw2D::get2DInput_GenGen();
 		//inclusive_input::test(input_raw2D::raw_sig);
 		/*
-						*/
 		input_raw2D::get2DInput_GenGen_sub0();
 		inclusive_input::getH2("GenJet_GenTrack", inclusive_input::GenGen_MC_pb_sub0_f);
 		inclusive_input::drawRatio_sub0(input_raw2D::raw_sig_pTweighted,input_raw2D::mixing, inclusive_input::raw_sig_pTweighted,
 						inclusive_input::mixing);
+						*/
 //		signal2D::loadFile();
 //		ana_fig::closure("track","gen_gen", "gen_rec", signal2D::gengen_pb_f, signal2D::genrec_pb_f);
 		//signal2D::getDr("gen_gen", "gen_rec", signal2D::gengen_pb_f, signal2D::genrec_pb_f);
+		//signal2D::pull1D("gen_gen", signal2D::gengen_pb_f);
+		//signal1D::checkBkg("gen_gen");
 		//signal2D::pull1D("gen_gen", signal2D::gengen_pb_f);
 		//signal1D::checkBkg("gen_gen");
 		//getting the 4-commuted tabels for jet and track reco validation check 

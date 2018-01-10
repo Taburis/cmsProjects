@@ -55,7 +55,6 @@ class trackingCorr  {
 		corr=NULL;
 		gen = new xthf4();
 		rec = new xthf4();
-		doSymmetrization = false;
 	}
 
 		void runScan();
@@ -87,7 +86,6 @@ class trackingCorr  {
 		int ncent_out   ;
 		float *trkpt_out;
 		float *cent_out ; 
-		bool doSymmetrization;
 
 };
 
