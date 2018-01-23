@@ -21,14 +21,6 @@
 //  inclusive_input
 //  ana_fig
 //const int nPt = 8; const int nCent =2 ;
-TString dataDumpPath = "/Users/tabris/cmsProjects/iJTC/dataSet/correlation/";
-TString FigDumpPath = "/Users/tabris/cmsProjects/iJTC/macros/figures/";
-
-TString trk_tag[] = {"0.7 < p_{T}^{track} < 1 GeV","1 < p_{T}^{track} < 2 GeV",
-		"2 < p_{T}^{track} < 3 GeV", "3 < p_{T}^{track} < 4 GeV",
-		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
-		"12 < p_{T}^{track} < 16 GeV", "p_{T}^{track} > 16 Gev"};
-TString cent_label[]={"Cent. 0-30%", "Cent. 30-100%"};
 
 
 
@@ -100,7 +92,7 @@ namespace input_raw2D{
 				//clearInput();
 				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCSignal.root"<<endl;
 		}
-		void showSpectra(TString name1, TString name2, TFile *f1, TFile *f2){
+		void showSpectra(TString name, TString name1, TString name2, TFile *f1, TFile *f2){
 				auto *cp = new doublePanelFig("c_"+name1+"_"+name2, "", 1, nCent );
 				auto tx = new TLatex();  tx->SetTextSize(.08);
 				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
@@ -111,16 +103,18 @@ namespace input_raw2D{
 						tmp = name1+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						cout<<tmp<<endl;
 						h[j][0] =(TH1D*) f1->Get(tmp); h[j][0]->GetXaxis()->SetTitle("#Delta#eta"); h[j][0]->SetTitle("");
+			//			h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
 						h[j][0]->SetMarkerColor(kBlue+2);
 						h[j][0]->SetLineWidth(1);
 						hr[j]=(TH1D*)h[j][0]->Clone(Form("hr_%d",j));
-						h[j][0]->SetAxisRange(h[j][0]->GetMinimum()-h[j][0]->GetMaximum()*0.1, h[j][0]->GetMaximum()*1.5, "Y");
+//						h[j][0]->SetAxisRange(1e-6, h[j][0]->GetMaximum()*10, "Y");
 						h[j][0]->SetAxisRange(100, 500 ,"X");
-						h[j][0]->SetAxisRange(1e-13, 1e-4,"Y");
+						//						h[j][0]->SetAxisRange(1e-13, 1e-4,"Y");
 						cp->addHist(h[j][0], 1, 2-j);
 						cp->CD(1, 2-j, 0); gPad->SetLogy();
 						tmp = name2+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						h[j][1] =(TH1D*) f2->Get(tmp); h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
+			//			h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
 						cp->addHist(h[j][1], 1, 2-j); 
 						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
 						hr[j]->SetAxisRange(100, 500, "X");  
@@ -129,14 +123,35 @@ namespace input_raw2D{
 						tmp = "Jet spectra: "+cent_label[j];
 						tx->DrawLatexNDC(0.15,0.87, tmp); 
 						cp->CD(1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
-						cp->draw95Area(1,2-j, 100, 500);
+			//			cp->draw95Area(1,2-j, 100, 500);
 				}
-				cp->SaveAs(name1+"_"+name2+"_jetSpectra.gif");
+				cp->SaveAs(FigDumpPath+name+"_jetSpectra.gif");
 		}
 
 }
 
 namespace signal2D{
+		void drawJSratio(TString name1, TString name2, TString name, bool ispp=0){
+				TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name1+"_JTCSignal.root";
+				TFile *f1 = TFile::Open(tmp);
+				tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name2+"_JTCSignal.root";
+				TFile *f2 = TFile::Open(tmp);
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				TFile* wf = TFile::Open("debug.root","recreate");
+				for(int i=0; i<8; ++i){
+						for(int j=0; j<2; ++j){
+								sp1[i][j]=new JTCSignalProducer();
+								sp2[i][j]=new JTCSignalProducer();
+								sp1[i][j]->read(f1, name1+Form("_pTweighted_%d_%d", i,j));
+								sp2[i][j]->read(f2, name2+Form("_pTweighted_%d_%d", i,j));
+								sp1[i][j]->doDrIntegral(Form("_1_%d_%d", i, j));
+								sp2[i][j]->doDrIntegral(Form("_2_%d_%d", i, j));
+						}
+				}
+				utility::quickJSratio(name, sp1, sp2, 0, ispp);
+		}
+
 		void drawStackJSDiff(TString name1, TString name2, TString name, bool isNumber = 1){
 				TFile *f1 = TFile::Open(dataDumpPath+name1+"_JTCSignal.root");
 				TFile *f2 = TFile::Open(dataDumpPath+name2+"_JTCSignal.root");
@@ -189,17 +204,22 @@ namespace signal2D{
 		}
 
 
+		void pull1D(TString fname){
+				TFile *f = TFile::Open(dataDumpPath+fname+"_JTCSignal.root");
+				cout<<f->GetName()<<endl;
+				pull1D(fname, f);
+		}
 
 }
 
 namespace signal1D {
-		void checkSide(TString name){
+		void checkSide(TString name, int ncent = 2){
 				TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name+"_JTCProj.root";
 				TFile *f = TFile::Open(tmp);
 				JTCSignalProducer *sp1[8][2];
 				TH1* h1[8][2], *h2[8][2];
 				for(int i=0; i<nPt ; ++i){
-						for(int j=0; j<nCent ; ++j){
+						for(int j=0; j<ncent ; ++j){
 								sp1[i][j] = new JTCSignalProducer();
 								sp1[i][j]->read1D(f, name+Form("_%d_%d", i, j));
 								h1[i][j]= (TH1*)sp1[i][j]->side_deta;
@@ -209,41 +229,42 @@ namespace signal1D {
 								h2[i][j]->SetLineColor(kRed);
 						}
 				}
-				utility::quickShow(name+"_sideCheck", h1, h2);
+				utility::quickShow(name+"_sideCheck", h1, h2, ncent);
 		}
-		void checkBkg(TString name){
+		void checkBkg(TString name, int ncent=2){
 				TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name+"_JTCProj.root";
 				TFile *f = TFile::Open(tmp);
 				JTCSignalProducer *sp1[8][2];
 				JTCSignalProducer *sp2[8][2];
 				auto tx = new TLatex();  tx->SetTextSize(.08);
-				auto cp1 = new mCanvasLoose("bkgCheck_"+name, "", nPt, 2*nCent);
-				auto cp2 = new mCanvasLoose("bkgCheck_JS_"+name, "", nPt, 2*nCent);
-				auto cp3 = new mCanvasLoose("bkgCheck_sideBand"+name, "", nPt, 2*nCent);
+				auto cp1 = new mCanvasLoose("bkgCheck_"+name, "", nPt, 2*ncent);
+				auto cp2 = new mCanvasLoose("bkgCheck_JS_"+name, "", nPt, 2*ncent);
+				auto cp3 = new mCanvasLoose("bkgCheck_sideBand"+name, "", nPt, 2*ncent);
 				for(int i=0; i<nPt ; ++i){
-						for(int j=0; j<nCent ; ++j){
-								tmp = trk_tag[i]+", "+cent_label[j];
+						for(int j=0; j<ncent ; ++j){
+								if(ncent == 2 )  tmp = trk_tag[i]+", "+cent_label[j];
+								else	tmp = trk_tag[i];
 								sp1[i][j] = new JTCSignalProducer();
 								sp2[i][j] = new JTCSignalProducer();
 								sp1[i][j]->read1D(f, name+Form("_%d_%d", i, j));
 								sp2[i][j]->read1D(f, name+Form("_pTweighted_%d_%d", i, j));
-								cp1->CD(i+1, 2-j);
+								cp1->CD(i+1, ncent-j);
 								sp1[i][j]->drawBkgCheck();
 								tx->DrawLatexNDC(0.02,0.98, tmp); 
-								cp1->CD(i+1, 4-j);
+								cp1->CD(i+1, 2*ncent-j);
 								sp1[i][j]->drawBkgCheck(0);
 								tx->DrawLatexNDC(0.02,0.98, tmp); 
-								cp2->CD(i+1, 2-j);
+								cp2->CD(i+1, ncent-j);
 								sp2[i][j]->drawBkgCheck();
 								tx->DrawLatexNDC(0.02,0.98, tmp); 
-								cp2->CD(i+1, 4-j);
+								cp2->CD(i+1, 2*ncent-j);
 								sp2[i][j]->drawBkgCheck(0);
 								tx->DrawLatexNDC(0.02,0.98, tmp); 
 
-								cp3->CD(i+1, 2-j);
+								cp3->CD(i+1, ncent-j);
 								sp1[i][j]->drawSideBandCheck();
 								tx->DrawLatexNDC(0.02,0.98, tmp); 
-								cp3->CD(i+1, 4-j);
+								cp3->CD(i+1, 2*ncent-j);
 								sp2[i][j]->drawSideBandCheck();
 								tx->DrawLatexNDC(0.02,0.98, tmp); 
 						}
@@ -331,6 +352,45 @@ namespace inclusive_input{
 				wf->Close();
 				//clearInput();
 				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCSignal.root"<<endl;
+		}
+
+		void showSpectra(TString name, TString name1, TString name2, TFile *f1, TFile *f2){
+				int ncent =2;
+				if( !f1->IsOpen()) cout<<f1->GetName()<<" haven't been open"<<endl;
+				getH2(name2, f2);
+				//comparing the b-tagged jets with the inclusive jets
+				// the second input has to come from the inclusive jets
+				auto *cp = new doublePanelFig("c_"+name, "", 1, nCent );
+				auto tx = new TLatex();  tx->SetTextSize(.08);
+				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
+				TString tmp;
+				TH1D* hr[nCent];
+				TH1D* h[nCent][2];
+				for(int j=0; j<ncent; ++j){
+						tmp = name1+"_all_bjets_corrpT"+input_raw2D::cent_tag[j]+"_"+input_raw2D::cent_tag[j+1]+"_Pt120_Pt1000";
+						cout<<tmp<<endl;
+						h[j][0] =(TH1D*) f1->Get(tmp); h[j][0]->GetXaxis()->SetTitle("#Delta#eta"); h[j][0]->SetTitle("");
+		//				h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
+						h[j][0]->SetMarkerColor(kBlue+2);
+						h[j][0]->SetLineWidth(1);
+						hr[j]=(TH1D*)h[j][0]->Clone(Form("hr_%d",j));
+						h[j][0]->SetAxisRange(1e-6, h[j][0]->GetMaximum()*10, "Y");
+						h[j][0]->SetAxisRange(100, 500 ,"X");
+						//						h[j][0]->SetAxisRange(1e-13, 1e-4,"Y");
+						cp->addHist(h[j][0], 1, ncent-j);
+						cp->CD(1, 2-j, 0); gPad->SetLogy();
+						h[j][1] = hjet[j]; h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
+		//				h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
+						cp->addHist(h[j][1], 1, ncent-j); 
+						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
+						hr[j]->SetAxisRange(100, 500, "X");  
+						cp->addHist(hr[j], 1, ncent-j, 1);
+						cp->CD(1, 2-j, 0); tl->DrawLine(-2.5, 0, 2.5, 0);
+						tmp = "Jet spectra: "+cent_label[j];
+						tx->DrawLatexNDC(0.15,0.87, tmp); 
+						cp->CD(1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
+				}
+				cp->SaveAs(FigDumpPath+name+"_jetSpectra.gif");
 		}
 }
 

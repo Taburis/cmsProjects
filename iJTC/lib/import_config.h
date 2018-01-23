@@ -11,9 +11,12 @@ namespace input_raw2D{
 		TFile *recrec_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecRec_PbPb_5TeV_bJTC_HPOn.root");
 		TFile *gengen_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_HPOn_CSVcutOnly.root");
 		TFile *genrec_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_PbPb_5TeV_bJTC_HPOn_CSVcutOnly.root");
-		TFile *gengen_pb_f_sub0_tagged_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_bTagged_trueB_sub0.root");
+		TFile *gengen_pb_sube0_tagged_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_bTagged_trueB_sub0.root");
 
 		TFile *gengen_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_5TeV_bJTC_pythia.root");
+		TFile *recgen_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_5TeV_bJTC_pythia.root");
+		TFile *genrec_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_5TeV_bJTC_pythia.root");
+		TFile *recrec_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecRec_5TeV_bJTC_pythia.root");
 		TH2D* raw_sig[8][2];
 		TH2D* raw_sig_pTweighted[8][2];
 		TH2D* mixing [8][2];
@@ -69,10 +72,13 @@ namespace input_raw2D{
 		void get2DInput_GenGen(){ get2DInput(gengen_pb_f, "GenJet_GenTrack"); }
 		void get2DInput_GenRec(){ get2DInput(genrec_pb_f, "GenJet_RecoTrack"); }
 		void get2DInput_GenGen_sub0(){ get2DInput(gengen_pb_sube0_f, "GenJet_GenTrack"); }
-		void get2DInput_GenGen_sub0_tagged_trueB(){ get2DInput(gengen_pb_f_sub0_tagged_trueB_f, "GenJet_GenTrack"); }
+		void get2DInput_GenGen_sub0_tagged_trueB(){ get2DInput(gengen_pb_sube0_tagged_trueB_f, "GenJet_GenTrack"); }
 		void get2DInput_GenGen_sub0_trueB(){ get2DInput(gengen_pb_sube0_trueB_f, "GenJet_GenTrack"); }
 		void getMix_GenGen(){ getMix(gengen_pb_f, "GenJet_GenTrack"); }
 		void get2DPythiaInput_GenGen(){ get2DInput(gengen_pythia_f, "GenJet_GenTrack"); }
+		void get2DPythiaInput_RecGen(){ get2DInput(recgen_pythia_f, "RecoJet_GenTrack"); }
+		void get2DPythiaInput_GenRec(){ get2DInput(genrec_pythia_f, "GenJet_RecoTrack"); }
+		void get2DPythiaInput_RecRec(){ get2DInput(recrec_pythia_f, "RecoJet_RecoTrack"); }
 //		void get2DInput_RecGen_sub0(){ get2DInput(recgen_pb_sube0_f, "RecoJet_GenTrack"); }
 }
 
