@@ -20,23 +20,23 @@ class trackingCorr2  {
 	public: 
 		trackingCorr2(inputTree* tt):
 			t(tt),
-			ntrkpt(trackingCorr2Config::ntrkpt_in),
-			ncent (trackingCorr2Config::ncent_in),
-			trkpt (trackingCorr2Config::trkpt_in),
-			cent  (trackingCorr2Config::cent_in),
-			nx    (trackingCorr2Config::neta),
-			ny    (trackingCorr2Config::nphi),
-			xmin  (trackingCorr2Config::etamin),
-			xmax  (trackingCorr2Config::etamax),
-			ymin  (trackingCorr2Config::phimin),
-			ymax  (trackingCorr2Config::phimax)
+			ntrkpt(trackingCorrConfig::ntrkpt_in),
+			ncent (trackingCorrConfig::ncent_in),
+			trkpt (trackingCorrConfig::trkpt_in),
+			cent  (trackingCorrConfig::cent_in),
+			nx    (trackingCorrConfig::neta),
+			ny    (trackingCorrConfig::nphi),
+			xmin  (trackingCorrConfig::etamin),
+			xmax  (trackingCorrConfig::etamax),
+			ymin  (trackingCorrConfig::phimin),
+			ymax  (trackingCorrConfig::phimax)
 	{
 		readonly =0;
 		corr=NULL;
 		if( t->ispp){
 				ncent =1;
-				fvz_weight = &(weight::pp_vz_weight);
 				float ppcent[] = {0,0 };
+				fvz_weight = &(weight::pp_vz_weight);
 				gen = new xthf4("gen","gen", nx,xmin, xmax , ny, ymin, ymax,ntrkpt, trkpt,ncent, ppcent);
 				rec = new xthf4("rec","rec", nx,xmin, xmax , ny, ymin, ymax,ntrkpt, trkpt,ncent, ppcent);
 		}
@@ -47,16 +47,16 @@ class trackingCorr2  {
 		}
 	};
 		trackingCorr2(TFile *ff ):
-			ntrkpt(trackingCorr2Config::ntrkpt_in),
-			ncent (trackingCorr2Config::ncent_in),
-			trkpt (trackingCorr2Config::trkpt_in),
-			cent  (trackingCorr2Config::cent_in),
-			nx    (trackingCorr2Config::neta),
-			ny    (trackingCorr2Config::nphi),
-			xmin  (trackingCorr2Config::etamin),
-			xmax  (trackingCorr2Config::etamax),
-			ymin  (trackingCorr2Config::phimin),
-			ymax  (trackingCorr2Config::phimax),
+			ntrkpt(trackingCorrConfig::ntrkpt_in),
+			ncent (trackingCorrConfig::ncent_in),
+			trkpt (trackingCorrConfig::trkpt_in),
+			cent  (trackingCorrConfig::cent_in),
+			nx    (trackingCorrConfig::neta),
+			ny    (trackingCorrConfig::nphi),
+			xmin  (trackingCorrConfig::etamin),
+			xmax  (trackingCorrConfig::etamax),
+			ymin  (trackingCorrConfig::phimin),
+			ymax  (trackingCorrConfig::phimax),
 			f(ff)
 	{
 		readonly = 1;
@@ -66,12 +66,13 @@ class trackingCorr2  {
 	}
 
 		void runScan();
-		void Read();
+		void Read(bool ispp=0);
 		void getCorr(TString file);
 		void showCorr(int i=-1, int j=-1);
 		void loadDataTracks(TString datafile);
 
 	public: 
+		bool is_pp;
 		float (*fvz_weight)(float );
 		inputTree * t;
 		int ntrkpt;
@@ -122,23 +123,32 @@ void trackingCorr2::loadDataTracks(TString file){
 	data_rec->Read("rec", "rec", data_f, ntrkpt, trkpt, ncent, cent);
 }
 
-void trackingCorr2::Read(){
+void trackingCorr2::Read(bool ispp){
 	if(!readonly) {
 		std::cout<<"already filled by obj, can't load anymore!"<<std::endl;
 		return ;
 	}
-	gen->Read("gen", "gen", f, ntrkpt, trkpt, ncent, cent);
-	rec->Read("rec", "rec", f, ntrkpt, trkpt, ncent, cent);
+	if( ispp ){
+
+			ncent =1;
+			float ppcent[2] = {0,1 };
+			gen->Read("gen", "gen", f, ntrkpt, trkpt, ncent, ppcent);
+			rec->Read("rec", "rec", f, ntrkpt, trkpt, ncent, ppcent);
+	}
+	else {
+			gen->Read("gen", "gen", f, ntrkpt, trkpt, ncent, cent);
+			rec->Read("rec", "rec", f, ntrkpt, trkpt, ncent, cent);
+	}
 	return ;
 }
 
 void trackingCorr2::getCorr(TString file){
 
 	TFile* wf = TFile::Open(file, "recreate");
-	ntrkpt_out = trackingCorr2Config::ntrkpt_out;
-	trkpt_out = trackingCorr2Config::trkpt_out;
-	ncent_out = trackingCorr2Config::ncent_out;
-	cent_out = trackingCorr2Config::cent_out;
+	ntrkpt_out = trackingCorrConfig::ntrkpt_out;
+	trkpt_out  = trackingCorrConfig::trkpt_out;
+	ncent_out  = trackingCorrConfig::ncent_out;
+	cent_out   = trackingCorrConfig::cent_out;
 
 	/*
 	//for gettign aux file to fix the hole problem
@@ -146,11 +156,17 @@ void trackingCorr2::getCorr(TString file){
 	float fcent[5] = {0,20, 60, 100, 200};
 	cent_out = fcent;
 	*/
-
-	gen->RebinZ(ntrkpt_out, trkpt_out);
-	rec->RebinZ(ntrkpt_out, trkpt_out);
-	gen->RebinW(ncent_out, cent_out);
-	rec->RebinW(ncent_out, cent_out);
+cout<<"here"<<endl;
+//	gen->RebinZ(ntrkpt_out, trkpt_out);
+//	rec->RebinZ(ntrkpt_out, trkpt_out);
+cout<<"and here"<<endl;
+	if(!is_pp){
+			gen->RebinW(ncent_out, cent_out);
+			rec->RebinW(ncent_out, cent_out);
+	}
+	else {
+			ncent_out=1;
+	}
 
 	int nhist = ntrkpt_out*ncent_out;
 	corr= new TH2F*[nhist];
@@ -161,9 +177,6 @@ void trackingCorr2::getCorr(TString file){
 			corr[i+j*ntrkpt_out]->Write();
 		}
 	}
-	//here didn't delete the histogram so the potential memory leak is expected!! needs to fix
-	int nptSymm = 2;
-	
 
 }
 

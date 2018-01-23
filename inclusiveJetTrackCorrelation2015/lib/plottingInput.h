@@ -55,13 +55,17 @@ namespace plottingInput{
 		TFile *js_syst_f = TFile::Open(path+"js_syst_err.root");
 		TFile *yield_proj_syst_f = TFile::Open(path+"yield_proj_syst_err.root");
 		TFile *run1_ref_f= TFile::Open(path + "Inclusive_Data_AllPlots.root");
-		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_fixErr.root");
-		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_kurt_pp.root");
+		//TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_fixErr.root");
+		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_final.root");
+		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_final.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_kurt_pp.root");
 //		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
 		TFile *yield_dr_pb_f = TFile::Open(path+"Jet_Shapes_fixErr.root");
 		TFile *yield_dr_pp_f = TFile::Open(path+"Jet_Shapes_kurt_pp.root");
-		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_combined.root");
-		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_for_pp_and_stat_err.root");
+//		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_combined.root");
+//		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_for_pp_and_stat_err.root");
+		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_final.root");
+		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_final.root");
 
 		void changeErr(TH1D* h , TH1D* err){
 				for(int k=1; k<h->GetNbinsX()+1;++k){
@@ -143,7 +147,7 @@ namespace plottingInput{
 								py_dphi[i][j]=(TH1D*)yield_proj_pb_f->Get(tmp);
 								py_dphi_err[i][j]=(TH1D*)yield_proj_pb_f->Get(tmp)->Clone(Form("Yield_dPhi_pb_syst_Error_%d_%d",i,j));
 								h=(TH1D*)yield_proj_syst_f->Get(Form("Yield_dPhi_Pb_Syst_Error_%d_%d",i,j));
-								h->Print("ALL");
+						//		h->Print("ALL");
 								changeErr(py_dphi_err[i][j], h);
 						}
 				}
@@ -301,7 +305,7 @@ namespace plottingInput{
 								js_dr_all[j]->Add(js_dr[i][j]);
 								js_dr_err_all[j]->Add(js_dr_err[i][j]);
 						}
-						cout<<js_dr_all[j]->GetName()<<endl;
+						//cout<<js_dr_all[j]->GetName()<<endl;
 				}
 		}
 

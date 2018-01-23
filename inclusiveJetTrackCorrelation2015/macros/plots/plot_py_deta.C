@@ -2,7 +2,6 @@
 #include "../../lib/stackHist.h"
 #include "../../lib/plottingInput.h"
 #include "../../lib/labels_PAS.h"
-#include "../../lib/xCanvas.h"
 using namespace plottingInput;
 
 TString cent_lab[4] = {"0-10%", "10-30%", "30-50%", "50-100%"};
@@ -179,7 +178,4 @@ void plot_py_deta(){
 	//	lb->drawText("(p_{T}> 120 GeV, |#eta_{jet}|<1.6)", 0.2, 0.25, 4);
 	c->SaveAs("py_deta_new.eps");
 	c->SaveAs("py_deta_new.pdf");
-	//auto cc = new TCanvas("cc", "", 600, 500);
-	//cc->cd();
-	//py_deta_all[1]->Draw();
 }

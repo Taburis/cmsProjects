@@ -46,7 +46,7 @@ class JTCSignalProducer :public signalFactoryBase {
 				TH1D* dr_integral = NULL;
 				bool doSmoothME = true;
 				float sideMin = 1.5, sideMax = 2.5;
-				TH1D *sig_deta=0, *sig_dphi=0, *sig_step2_deta=0, *sig_step2_dphi=0,*bkg_deta=0, *bkg_dphi=0,*side_deta=0;
+				TH1D *sig_deta=0, *sig_dphi=0, *sig_step2_deta=0, *sig_step2_dphi=0,*bkg_deta=0, *bkg_dphi=0,*side_deta=0, *side_deta_mix=0;
 };
 
 TH2D* JTCSignalProducer::getSignal(TString name){
@@ -160,6 +160,9 @@ void JTCSignalProducer::getAllProj(TString name){
 
 		tmp = "side_deta_"+name;
 		side_deta = (TH1D*) projX(1, sig, 1.2, 2.2); side_deta->SetName(tmp);
+
+		tmp = "side_deta_mix_"+name;
+		side_deta_mix = (TH1D*) projX(1, mix_normalized, 1.2, 2.2); side_deta_mix->SetName(tmp);
 }
 
 
@@ -167,6 +170,7 @@ void JTCSignalProducer::WriteTH1(){
 		sig_deta->Write(); sig_step2_deta->Write(); bkg_deta->Write();
 		sig_dphi->Write(); sig_step2_dphi->Write(); bkg_dphi->Write();
 		side_deta->Write();
+		side_deta_mix->Write();
 }
 
 void JTCSignalProducer::read1D(TFile *f , TString name){
@@ -182,6 +186,7 @@ void JTCSignalProducer::read1D(TFile *f , TString name){
 		tmp = "bkg_dphi_"+name; bkg_dphi=(TH1D*) f->Get(tmp);
 
 		tmp = "side_deta_"+name; side_deta=(TH1D*) f->Get(tmp);
+		tmp = "side_deta_mix_"+name; side_deta_mix=(TH1D*) f->Get(tmp);
 }
 
 void JTCSignalProducer::drawBkgCheck(bool doX){

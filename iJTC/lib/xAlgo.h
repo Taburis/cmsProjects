@@ -16,6 +16,7 @@ namespace xAlgo {
 		else if( arr[mid] < key) return binarySearch(key, arr, i_max, mid);
 		else return mid;
 	}
+
 	int binarySearch(float key, std::vector<float> & arr, int i_max, int i_min ){
 		if(key<arr.at(i_min)) return -1;
 		if(key>arr.at(i_max)) return -1;
@@ -26,6 +27,7 @@ namespace xAlgo {
 		else if( arr[mid] < key) return binarySearch(key, arr, i_max, mid);
 		else return mid;
 	}
+
 	template <typename T> long BinarySearch(long n, const T *array, T value)
 	{
 		// 	Binary search in an array of n values to locate value.
@@ -41,7 +43,6 @@ namespace xAlgo {
 		else
 			return (pind - array - 1);
 	}
-
 }
 
 #endif

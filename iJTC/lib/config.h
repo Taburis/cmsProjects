@@ -14,6 +14,7 @@
 //#include "../dataSet/corrTableCymbal/xiaoTrkCorr.h"
 // fine bin cymbal correction
 #include "xiaoTrkCorr.h" //new correction
+#include "xiaoTrkCorr_pp.h" //new correction
 #include "TF1.h"
 
 namespace jetTrack{
@@ -36,11 +37,15 @@ namespace jetTrack{
 		}
 		namespace correction{
 				// no dca cut correction
-				xiaoTrkCorr* trkc= new xiaoTrkCorr("corrTable/patched_corrTable_cymbal_noDCAcuts.root");
+				xiaoTrkCorr* trkc= new xiaoTrkCorr("../../corrTable/patched_corrTable_cymbal_noDCAcuts.root");
+				xiaoTrkCorr_pp* trkc_pp= new xiaoTrkCorr_pp("../../corrTable/corrTable_pp_noDCA.root");
 				// broder bin correction
 				//xiaoTrkCorr* trkc= new xiaoTrkCorr("../dataSet/corrTableCymbal/inputCorr_cymbalTune.root");
 				float trk_corr(inputTree *t, int j ){
 						return trkc->getTrkCorr(t->trkPt->at(j), t->trkEta->at(j), t->trkPhi->at(j),t->hiBin);	
+				}
+				float trk_corr_pp(inputTree *t, int j ){
+						return trkc_pp->getTrkCorr(t->trkPt->at(j), t->trkEta->at(j), t->trkPhi->at(j),0,0);	
 				}
 				float trk_corr(dataTree *t, int j ){
 						return trkc->getTrkCorr(t->trkPt->at(j), t->trkEta->at(j), t->trkPhi->at(j),t->hiBin);	
@@ -174,7 +179,16 @@ namespace jetTrack{
 				if ( vz>15 || vz<-15) return 1;
 				return 0;
 		}
+		bool eventCutsImp_pp(int HBHENoiseFilterResultRun2Loose, int pprimaryVertexFilter, float vz){
+				if ( HBHENoiseFilterResultRun2Loose ==0) return 1;
+				if ( pprimaryVertexFilter ==0) return 1;
+				if ( vz>15 || vz<-15) return 1;
+				return 0;
+		}
 		bool eventCuts(inputTree *t){
+if( t->ispp)
+				return eventCutsImp_pp(t->HBHENoiseFilterResultRun2Loose, t->pprimaryVertexFilter, t->vz);
+else
 				return eventCutsImp(t->HBHENoiseFilterResultRun2Loose, t->pcollisionEventSelection, t->pprimaryVertexFilter, t->phfCoincFilter3, t->vz);
 		}
 		bool eventCuts(dataTree *t){
