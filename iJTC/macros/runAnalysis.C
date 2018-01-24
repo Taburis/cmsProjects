@@ -9,6 +9,13 @@ void runAnalysis(){
 		//input_raw2D::get2DInput_GenRec(); input_raw2D::pullSig("gen_rec");
 		//input_raw2D::get2DInput_GenRec(); input_raw2D::pullSig("gen_rec");
 		//input_raw2D::get2DInput_GenGen_sub0(); input_raw2D::pullSig("gen_gen_sub0_mix");
+		/* data */
+		//input_raw2D::get2DInput_Data(); input_raw2D::pullSig("data_pb");
+		signal2D::pull1D("data_pb");
+		signal1D::checkBkg("data_pb");
+		signal2D::loadFile();
+		//signal2D::drawStackJSDiff("data_pb","gen_gen_pythia", "pre", 1);
+		//signal2D::drawStackJSDiff("data_pb","rec_gen_pythia", "pre2", 1);
 	// pythia:	
 		//input_raw2D::get2DPythiaInput_GenGen(); input_raw2D::pullSig("gen_gen_pythia");
 		//input_raw2D::get2DPythiaInput_RecGen(); input_raw2D::pullSig("rec_gen_pythia");
@@ -28,7 +35,6 @@ void runAnalysis(){
 	
 
 // get 1D histogram for checking 
-		signal2D::loadFile();
 		//TFile *f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/gen_gen_sub0_mix_JTCSignal.root");
 		//TFile *f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/gen_gen_pythia_JTCSignal.root");
 		//signal2D::pull1D("gen_gen_pythia", f);
@@ -40,7 +46,9 @@ void runAnalysis(){
 		//signal2D::pull1D("gen_rec", signal2D::genrec_pb_f);
 		//signal2D::pull1D("gen_gen_sub0", signal2D::gengen_pb_sub0_f);
 		//signal2D::pull1D("incl_gen_gen_sub0", inclusive_input::gengen_pb_sub0_f);
-		signal2D::drawStackJSDiff("gen_rec","gen_gen_pythia", "genrec_test", 1);
+		//signal2D::drawStackJSDiff("gen_rec","gen_gen_pythia", "genrec_test", 1);
+		//signal2D::drawStackJSDiff("rec_rec","gen_gen_pythia", "recrec_test", 1);
+		//signal2D::drawStackJSDiff("gen_gen","gen_gen_pythia", "gengen_test", 1);
 		//signal2D::drawStackJSDiff("gen_gen_sub0","gen_gen_pythia", "gengen_sub0", 1);
 		//signal2D::drawStackJSDiff("gen_gen","gen_gen_pythia", "gengen", 1);
 		//signal2D::drawJSratio("gen_gen_pythia","gen_rec_pythia", "gengen_over_genrec", 1);

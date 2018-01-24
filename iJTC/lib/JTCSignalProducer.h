@@ -37,6 +37,8 @@ class JTCSignalProducer :public signalFactoryBase {
 				// 1: get the raw_sig by skiming
 				// 2: correct the raw_sig by the mixing table
 				// 3: subtract the bkg to get the sig
+//				float sidebandmin=1.2 , sidebandmax=1.8;
+				float sidebandmin=-TMath::Pi()/2 , sidebandmax=-1.2;
 				TH2D* raw_sig =NULL;
 				TH2D* sig =NULL;
 				TH2D* sig_step2 =NULL;  // right after the mixing correction
@@ -159,7 +161,7 @@ void JTCSignalProducer::getAllProj(TString name){
 		bkg_dphi = (TH1D*) projY(1, bkg, -1, 1); bkg_dphi->SetName(tmp);
 
 		tmp = "side_deta_"+name;
-		side_deta = (TH1D*) projX(1, sig, 1.2, 2.2); side_deta->SetName(tmp);
+		side_deta = (TH1D*) projX(1, sig, sidebandmin, sidebandmax); side_deta->SetName(tmp);
 
 		tmp = "side_deta_mix_"+name;
 		side_deta_mix = (TH1D*) projX(1, mix_normalized, 1.2, 2.2); side_deta_mix->SetName(tmp);

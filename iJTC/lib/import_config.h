@@ -5,6 +5,7 @@ namespace input_raw2D{
 		TString trk_tag[] = {"TrkPt07", "TrkPt1", "TrkPt2","TrkPt3","TrkPt4","TrkPt8","TrkPt12","TrkPt16","TrkPt999"};
 		TString cent_tag[]= {"Cent0","Cent30","Cent100"};
 
+		TFile *data_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/Data_PbPb_5TeV_bJTC.root");
 		TFile *gengen_pb_sube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_csvCut_sube0.root");
 		TFile *gengen_pb_sube0_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_sub0_trueB.root");
 		TFile *recgen_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_PbPb_5TeV_bJTC_HPOn.root");
@@ -67,6 +68,7 @@ namespace input_raw2D{
 				}
 		}
 
+		void get2DInput_Data(){ get2DInput(data_pb_f, "Data"); }
 		void get2DInput_RecGen(){ get2DInput(recgen_pb_f, "RecoJet_GenTrack"); }
 		void get2DInput_RecRec(){ get2DInput(recrec_pb_f, "RecoJet_RecoTrack"); }
 		void get2DInput_GenGen(){ get2DInput(gengen_pb_f, "GenJet_GenTrack"); }
