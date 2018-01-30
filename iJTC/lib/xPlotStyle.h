@@ -51,7 +51,7 @@ void mCanvasLoose::histStyle(TH1 *h){
 		h->GetYaxis()->SetLabelSize(0.07);
 		h->GetXaxis()->CenterTitle();
 		h->GetXaxis()->SetTitleOffset(0.8);
-		h->GetXaxis()->SetTitleSize(0.09);
+		h->GetXaxis()->SetTitleSize(0.085);
 		h->GetYaxis()->SetTitleSize(0.09);
 }
 
@@ -72,7 +72,7 @@ class doublePanelFig : public mCanvasBase {
 };
 
 doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int y, float r):
-		mCanvasBase(name, title, x, y, 300, 400, 0, 0)
+		mCanvasBase(name, title, x, y, 300, 500, 0, 0)
 {
 		style()->cd();
 		//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
@@ -88,10 +88,12 @@ doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int 
 						pad[at(i,j, 0)] = new  TPad(sname+"_0", "", 0.0, r, 1, 1);
 						pad[at(i,j, 1)] = new  TPad(sname+"_1", "", 0.0, 0.0, 1, r);
 						pad[at(i,j, 0)]->SetTopMargin(0.05);
+						pad[at(i,j, 0)]->SetLeftMargin(0.14);
+						pad[at(i,j, 1)]->SetLeftMargin(0.14);
 						pad[at(i,j, 0)]->SetBottomMargin(0);
 						pad[at(i,j, 1)]->SetTopMargin(0);
-						pad[at(i,j, 0)]->SetRightMargin(0.05); pad[at(i,j, 0)]->SetTopMargin(0.03);
-						pad[at(i,j, 1)]->SetRightMargin(0.05); 
+						pad[at(i,j, 0)]->SetRightMargin(0.02); pad[at(i,j, 0)]->SetTopMargin(0.03);
+						pad[at(i,j, 1)]->SetRightMargin(0.02); 
 						pad[at(i,j, 1)]->SetBottomMargin(0.25); 
 						pad[at(i,j,0)]->Draw(); pad[at(i,j,1)]->Draw();
 						//cout<<pad[at(i,j,1)]->GetName()<<endl;
@@ -106,7 +108,7 @@ void doublePanelFig::addHist(TH1* h, int i, int j, int n){
 }
 void doublePanelFig::histStyle(TH1* h, int n){
 		if(n==1){
-				h->GetXaxis()->SetLabelSize(0.12);
+				h->GetXaxis()->SetLabelSize(0.11);
 				h->GetYaxis()->SetLabelSize(0.12);
 				h->GetXaxis()->CenterTitle();
 				h->GetXaxis()->SetTitleSize(0.15);
@@ -114,6 +116,7 @@ void doublePanelFig::histStyle(TH1* h, int n){
 		}
 		else{
 				h->GetYaxis()->SetLabelSize(0.08);
+				h->GetXaxis()->SetLabelSize(0.08);
 		}
 }
 void doublePanelFig::drawShadowArea(int i, int j, float x1, float x2, float y1, float y2){

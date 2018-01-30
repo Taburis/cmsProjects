@@ -28,6 +28,7 @@ class signalFactoryBase {
 				TH1D* drGeoTest(TH2D* signal, TH1D* drDist);
 				void  doDrPhaseCorrection(TH2D* signal, TH1D* drDist);
 				TH1* invariantRebin(TH1* h, TString name , int n, const Double_t * bins);
+				TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax);
 
 		public : 
 				float midLeft = -0.15;
@@ -300,6 +301,36 @@ TH1* signalFactoryBase::invariantRebin(TH1* h, TString name , int n, const Doubl
 				hh->SetBinError  (i, hh->GetBinError(i)/wd);
 		}
 		return hh;
+}
+
+TH2D* signalFactoryBase::sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax){
+		int s1 = h2->GetYaxis()->FindBin(sidemin);
+		int s2 = h2->GetYaxis()->FindBin(sidemax-0.001);
+		int dbin = s2-s1;
+		TH1D* temp = (TH1D*) h2->ProjectionX("_sideMix_deta", s1, s2);
+		TString name = h2->GetName();
+		TH2D* ME = (TH2D*) h2->Clone(name);
+		float mean=0;
+		int binLeft = temp->FindBin(midLeft);
+		int binRight= temp->FindBin(midRight)+1;
+		for(int i=binLeft;i<binRight; i++){
+				mean += temp->GetBinContent(i);
+		}
+		mean = mean /(temp->FindBin(midRight)-temp->FindBin(midLeft)+1)/h2->GetNbinsY();
+		temp->Scale(1.0/mean);
+		for(int ix=1; ix<h2->GetNbinsX()+1; ix++){
+				for(int iy=1; iy<h2->GetNbinsY()+1; iy++){
+						if( ix< binRight && ix>= binLeft){
+								ME->SetBinContent(ix, iy, 1);
+								ME->SetBinError(ix, iy, 0);
+						}
+						else{
+								ME->SetBinContent(ix, iy, temp->GetBinContent(ix)/dbin);
+								ME->SetBinError(ix, iy, temp->GetBinError(ix)/sqrt(dbin));
+						}
+				}
+		}
+		return ME;
 }
 
 #endif

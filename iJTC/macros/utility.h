@@ -28,9 +28,8 @@ namespace utility{
 				auto tx = new TLatex();  tx->SetTextSize(.08);
 				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
 				TH1D* hr[nPt][ncent];
-				TString tmp;
+				TString tmp; int ic=0;
 				for(int i=drop; i<nPt; ++i){
-						int ic=0;
 						for(int j=0; j<ncent; ++j){
 								h1[i][j]->SetMarkerColor(kBlue+2);
 								h1[i][j]->SetLineColor(kBlue+2);
@@ -47,12 +46,12 @@ namespace utility{
 								cp->CD(ic+1, ncent-j, 0); tl->DrawLine(x1, 0, x2, 0);
 								if(ispp) tmp = trk_tag[i];
 								else	tmp = trk_tag[i]+", "+cent_label[j];
-								tx->DrawLatexNDC(0.15,0.87, tmp); 
+								tx->DrawLatexNDC(0.15,0.98, tmp); 
 								cp->CD(ic+1, ncent-j, 1); tl->DrawLine(x1, 1,x2, 1);
-								ic++;
 						}
+						ic++;
 				}
-				cp->SaveAs(FigDumpPath+"ratio_"+name+".gif");
+				cp->SaveAs(FigDumpPath+"quickLook_"+name+"_overlay.gif");
 		}
 
 		void quickJSOverlay(TString name1, TString name2, TFile *f1, TFile *f2, float x1, float x2){

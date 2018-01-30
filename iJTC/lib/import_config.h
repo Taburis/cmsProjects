@@ -8,11 +8,14 @@ namespace input_raw2D{
 		TFile *data_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/Data_PbPb_5TeV_bJTC.root");
 		TFile *gengen_pb_sube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_csvCut_sube0.root");
 		TFile *gengen_pb_sube0_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_sub0_trueB.root");
+		TFile *recgen_pb_nsube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_PbPb_5TeV_bJTC_nsub0_25Jan18.root");
+		TFile *recgen_pb_sube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_PbPb_5TeV_bJTC_sub0.root");
 		TFile *recgen_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_PbPb_5TeV_bJTC_HPOn.root");
 		TFile *recrec_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecRec_PbPb_5TeV_bJTC_HPOn.root");
 		TFile *gengen_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_HPOn_CSVcutOnly.root");
 		TFile *genrec_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_PbPb_5TeV_bJTC_HPOn_CSVcutOnly.root");
 		TFile *gengen_pb_sube0_tagged_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_bTagged_trueB_sub0.root");
+		TFile *gengen_pb_nsube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_nsube0_25Jan18.root");
 
 		TFile *gengen_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_5TeV_bJTC_pythia.root");
 		TFile *recgen_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_5TeV_bJTC_pythia.root");
@@ -31,9 +34,9 @@ namespace input_raw2D{
 									   +"_Pt120_Pt1000";
 								h1 = (TH1D*) f->Get(tmp);
 								njet = h1->Integral();
-//								cout<<tmp<<endl;
 								tmp = cap+"_hbJetTrackSignalBackground_"+cent_tag[j]+"_"+cent_tag[j+1]\
 									   +"_Pt120_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+//								cout<<tmp<<endl;
 								raw_sig[i][j] = (TH2D*) f->Get(tmp);
 								raw_sig[i][j]->Scale(1.0/njet/trkbinWidth[i]);
 								tmp = cap+"_hbJetTrackSignalBackground_pTweighted"+cent_tag[j]+"_"+cent_tag[j+1]\
@@ -69,19 +72,26 @@ namespace input_raw2D{
 		}
 
 		void get2DInput_Data(){ get2DInput(data_pb_f, "Data"); }
-		void get2DInput_RecGen(){ get2DInput(recgen_pb_f, "RecoJet_GenTrack"); }
-		void get2DInput_RecRec(){ get2DInput(recrec_pb_f, "RecoJet_RecoTrack"); }
+		void get2DInput_GenGen_nsube0(){ get2DInput(gengen_pb_nsube0_f, "GenJet_GenTrack"); }
 		void get2DInput_GenGen(){ get2DInput(gengen_pb_f, "GenJet_GenTrack"); }
-		void get2DInput_GenRec(){ get2DInput(genrec_pb_f, "GenJet_RecoTrack"); }
 		void get2DInput_GenGen_sub0(){ get2DInput(gengen_pb_sube0_f, "GenJet_GenTrack"); }
 		void get2DInput_GenGen_sub0_tagged_trueB(){ get2DInput(gengen_pb_sube0_tagged_trueB_f, "GenJet_GenTrack"); }
 		void get2DInput_GenGen_sub0_trueB(){ get2DInput(gengen_pb_sube0_trueB_f, "GenJet_GenTrack"); }
+
+		void get2DInput_RecGen(){ get2DInput(recgen_pb_f, "RecoJet_GenTrack"); }
+		void get2DInput_RecGen_nsube0(){ get2DInput(recgen_pb_nsube0_f, "RecoJet_GenTrack"); }
+		void get2DInput_RecGen_sub0(){ get2DInput(recgen_pb_sube0_f, "RecoJet_GenTrack"); }
+
 		void getMix_GenGen(){ getMix(gengen_pb_f, "GenJet_GenTrack"); }
+		void getMix_GenGen_nsube0(){ getMix(gengen_pb_nsube0_f, "GenJet_GenTrack"); }
+		void get2DInput_GenRec(){ get2DInput(genrec_pb_f, "GenJet_RecoTrack"); }
+		void get2DInput_RecRec(){ get2DInput(recrec_pb_f, "RecoJet_RecoTrack"); }
+
+
 		void get2DPythiaInput_GenGen(){ get2DInput(gengen_pythia_f, "GenJet_GenTrack"); }
 		void get2DPythiaInput_RecGen(){ get2DInput(recgen_pythia_f, "RecoJet_GenTrack"); }
 		void get2DPythiaInput_GenRec(){ get2DInput(genrec_pythia_f, "GenJet_RecoTrack"); }
 		void get2DPythiaInput_RecRec(){ get2DInput(recrec_pythia_f, "RecoJet_RecoTrack"); }
-//		void get2DInput_RecGen_sub0(){ get2DInput(recgen_pb_sube0_f, "RecoJet_GenTrack"); }
 }
 
 namespace signal2D {

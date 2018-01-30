@@ -11,8 +11,9 @@
 #include "../lib/xPlotStyle.h"
 #endif
 
-#include "anaFig_stack.h"
 #include "utility.h"
+#include "anaFig_stack.h"
+#include "anaFig_recoCheck.h"
 // namespace :
 //  utility
 //  input_raw2D
@@ -25,6 +26,10 @@
 
 
 namespace ana_fig{
+		void drawRecoCheck(TString name1, TString name2, bool ver=1){
+				recCheck_pb("recoCheck_"+name1+"_over_"+name2, name1, name2, ver);
+		}
+
 		void closure(TString name, TString name1, TString name2, TFile *f1, TFile *f2, bool isNumber = 1){
 				// need to add the systematic uncertainty
 				auto cp1 = new mCanvasLoose("cp1", "", 7, 2, 300, 125);
@@ -61,7 +66,7 @@ namespace ana_fig{
 }
 
 namespace input_raw2D{
-		void pullSig(TString fname){
+		void pullSig(TString fname, float sidemin=1.5, float sidemax=2.5, bool doSideMix=0){
 				cout<<"pulling singal for "<<fname;
 				TString trkbin [] = {"0.7", "1", "2", "3", "4", "8", "12", "16", "999"};
 				TString centbin [] = {"0", "30", "100"};
@@ -79,9 +84,13 @@ namespace input_raw2D{
 								raw_sig_pTweighted[i][j]->SetTitle(title);
 								mixing [i][j]->SetTitle(title);
 								sp1[i][j] = new JTCSignalProducer(raw_sig[i][j], mixing[i][j]);
+								sp1[i][j]->sideMin=sidemin; sp1[i][j]->sideMax=sidemax;
+								sp1[i][j]->doSideBandMixing = doSideMix;
 								sp1[i][j]->getSignal(fname+Form("_%d_%d", i, j));
 								sp1[i][j]->WriteTH2();
 								sp2[i][j] = new JTCSignalProducer(raw_sig_pTweighted[i][j], mixing[i][j]);
+								sp2[i][j]->sideMin=sidemin; sp2[i][j]->sideMax=sidemax;
+								sp2[i][j]->doSideBandMixing = doSideMix;
 								sp2[i][j]->getSignal(fname+Form("_pTweighted_%d_%d", i, j));
 								sp2[i][j]->WriteTH2();
 								//								cout<<sp2[i][j]->sig->GetName()<<endl;
@@ -103,18 +112,18 @@ namespace input_raw2D{
 						tmp = name1+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						cout<<tmp<<endl;
 						h[j][0] =(TH1D*) f1->Get(tmp); h[j][0]->GetXaxis()->SetTitle("#Delta#eta"); h[j][0]->SetTitle("");
-			//			h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
+						h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
 						h[j][0]->SetMarkerColor(kBlue+2);
 						h[j][0]->SetLineWidth(1);
 						hr[j]=(TH1D*)h[j][0]->Clone(Form("hr_%d",j));
-//						h[j][0]->SetAxisRange(1e-6, h[j][0]->GetMaximum()*10, "Y");
+						//						h[j][0]->SetAxisRange(1e-6, h[j][0]->GetMaximum()*10, "Y");
 						h[j][0]->SetAxisRange(100, 500 ,"X");
 						//						h[j][0]->SetAxisRange(1e-13, 1e-4,"Y");
 						cp->addHist(h[j][0], 1, 2-j);
 						cp->CD(1, 2-j, 0); gPad->SetLogy();
 						tmp = name2+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						h[j][1] =(TH1D*) f2->Get(tmp); h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
-			//			h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
+						h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
 						cp->addHist(h[j][1], 1, 2-j); 
 						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
 						hr[j]->SetAxisRange(100, 500, "X");  
@@ -123,7 +132,7 @@ namespace input_raw2D{
 						tmp = "Jet spectra: "+cent_label[j];
 						tx->DrawLatexNDC(0.15,0.87, tmp); 
 						cp->CD(1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
-			//			cp->draw95Area(1,2-j, 100, 500);
+						//			cp->draw95Area(1,2-j, 100, 500);
 				}
 				cp->SaveAs(FigDumpPath+name+"_jetSpectra.gif");
 		}
@@ -178,7 +187,7 @@ namespace signal2D{
 				stackPlot_diff(hpb, hpp, tmp);
 		}
 
-		void pull1D(TString fname, TFile *f){
+		void pull1D(TString fname, TFile *f, bool rebin=1){
 				cout<<"pulling 1D histograms for "<<fname;
 				JTCSignalProducer *sp1[8][2];
 				JTCSignalProducer *sp2[8][2];
@@ -190,10 +199,10 @@ namespace signal2D{
 								sp1[i][j] = new JTCSignalProducer();
 								sp2[i][j] = new JTCSignalProducer();
 								sp1[i][j]->read(f, fname+Form("_%d_%d", i, j));
-								sp1[i][j]->getAllProj(fname+Form("_%d_%d", i, j));
+								sp1[i][j]->getAllProj(fname+Form("_%d_%d", i, j), rebin);
 								sp1[i][j]->WriteTH1();
 								sp2[i][j]->read(f, fname+Form("_pTweighted_%d_%d", i, j));
-								sp2[i][j]->getAllProj(fname+Form("_pTweighted_%d_%d", i, j));
+								sp2[i][j]->getAllProj(fname+Form("_pTweighted_%d_%d", i, j), rebin);
 								sp2[i][j]->WriteTH1();
 						}
 				}
@@ -204,10 +213,10 @@ namespace signal2D{
 		}
 
 
-		void pull1D(TString fname){
+		void pull1D(TString fname, bool rebin){
 				TFile *f = TFile::Open(dataDumpPath+fname+"_JTCSignal.root");
 				cout<<f->GetName()<<endl;
-				pull1D(fname, f);
+				pull1D(fname, f, rebin);
 		}
 
 }
@@ -322,7 +331,7 @@ namespace inclusive_input{
 				cout<<". Done"<<endl;;
 				//clearInput();
 		}
-		void pullSig(TString fname){
+		void pullSig(TString fname, float sidemin=1.5, float sidemax=2.5, bool doSideMix=0){
 				cout<<"pulling singal for "<<fname;
 				TString trkbin [] = {"0.7", "1", "2", "3", "4", "8", "12", "16", "999"};
 				TString centbin [] = {"0", "30", "100"};
@@ -340,9 +349,13 @@ namespace inclusive_input{
 								raw_sig_pTweighted[i][j]->SetTitle(title);
 								mixing [i][j]->SetTitle(title);
 								sp1[i][j] = new JTCSignalProducer(raw_sig[i][j], mixing[i][j]);
+								sp1[i][j]->sideMin=sidemin; sp1[i][j]->sideMax=sidemax;
+								sp1[i][j]->doSideBandMixing = doSideMix;
 								sp1[i][j]->getSignal(fname+Form("_%d_%d", i, j));
 								sp1[i][j]->WriteTH2();
 								sp2[i][j] = new JTCSignalProducer(raw_sig_pTweighted[i][j], mixing[i][j]);
+								sp2[i][j]->sideMin=sidemin; sp2[i][j]->sideMax=sidemax;
+								sp2[i][j]->doSideBandMixing = doSideMix;
 								sp2[i][j]->getSignal(fname+Form("_pTweighted_%d_%d", i, j));
 								sp2[i][j]->WriteTH2();
 								//								cout<<sp2[i][j]->sig->GetName()<<endl;
@@ -370,7 +383,7 @@ namespace inclusive_input{
 						tmp = name1+"_all_bjets_corrpT"+input_raw2D::cent_tag[j]+"_"+input_raw2D::cent_tag[j+1]+"_Pt120_Pt1000";
 						cout<<tmp<<endl;
 						h[j][0] =(TH1D*) f1->Get(tmp); h[j][0]->GetXaxis()->SetTitle("#Delta#eta"); h[j][0]->SetTitle("");
-		//				h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
+						h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
 						h[j][0]->SetMarkerColor(kBlue+2);
 						h[j][0]->SetLineWidth(1);
 						hr[j]=(TH1D*)h[j][0]->Clone(Form("hr_%d",j));
@@ -380,7 +393,7 @@ namespace inclusive_input{
 						cp->addHist(h[j][0], 1, ncent-j);
 						cp->CD(1, 2-j, 0); gPad->SetLogy();
 						h[j][1] = hjet[j]; h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
-		//				h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
+						h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
 						cp->addHist(h[j][1], 1, ncent-j); 
 						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
 						hr[j]->SetAxisRange(100, 500, "X");  
