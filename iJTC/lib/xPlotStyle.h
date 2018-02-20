@@ -32,7 +32,7 @@ mCanvasLoose::mCanvasLoose(const char *name, const char *title , int x, int y , 
 		mCanvasBase(name, title, x, y, width, height, 0, 0)
 {
 		//		style()->cd();
-		//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
+		this->SetMargin(0.5, 0.5, 0.4, 0.40);
 		gStyle->SetOptStat(0);
 		this->Divide(ncol,nrow);
 		tl = new TLine();
@@ -72,7 +72,7 @@ class doublePanelFig : public mCanvasBase {
 };
 
 doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int y, float r):
-		mCanvasBase(name, title, x, y, 300, 500, 0, 0)
+		mCanvasBase(name, title, x, y, 350, 400, 0, 0)
 {
 		style()->cd();
 		//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
@@ -113,6 +113,9 @@ void doublePanelFig::histStyle(TH1* h, int n){
 				h->GetXaxis()->CenterTitle();
 				h->GetXaxis()->SetTitleSize(0.15);
 				h->GetXaxis()->SetTitleOffset(0.7);
+				h->GetYaxis()->SetTitleOffset(0.5);
+				h->GetYaxis()->SetTitleSize(0.12);
+				h->GetYaxis()->CenterTitle();
 		}
 		else{
 				h->GetYaxis()->SetLabelSize(0.08);

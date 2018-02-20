@@ -86,15 +86,15 @@ void plot_js_normal(){
 		ratio[i]->SetAxisRange(0., 3.2, "Y");
 		ratio[i]->SetAxisRange(0, .99, "X");
 		if( i<3 )  {
-			ratio[i]->GetXaxis()->SetTitleOffset(0.8);
-			ratio[i]->GetXaxis()->SetTitleSize(0.09);
+			ratio[i]->GetXaxis()->SetTitleOffset(0.7);
+			ratio[i]->GetXaxis()->SetTitleSize(0.11);
 			ratio[i]->GetXaxis()->SetNdivisions(505);
 			ratio[i]->GetXaxis()->SetLabelSize(0.08);
 			ratio[i]->GetYaxis()->SetNdivisions(505);
 		}
 		if(i==3 ){
-			ratio[i]->GetXaxis()->SetTitleOffset(0.94);
-			ratio[i]->GetXaxis()->SetTitleSize(0.074);
+			ratio[i]->GetXaxis()->SetTitleOffset(0.92);
+			ratio[i]->GetXaxis()->SetTitleSize(0.086);
 			ratio[i]->GetXaxis()->SetNdivisions(505);
 			ratio[i]->GetXaxis()->SetLabelOffset(0.016);
 			ratio[i]->GetXaxis()->SetLabelSize(0.064);
@@ -218,8 +218,8 @@ void plot_js_normal(){
 	tl->DrawLatex(0.755, 0.055, "0");
 	tl->DrawLatex(0.985, 0.055, "1");
 
-	c->SaveAs("js_dr_normal_new.eps");
-	c->SaveAs("js_dr_normal_new.pdf");
+	c->SaveAs("js_dr_normal_new_pp.eps");
+	c->SaveAs("js_dr_normal_new_pp.pdf");
 	//c->SaveAs("js_dr_normal_v3.eps");
 	//c->SaveAs("js_dr_normal_v3.pdf");
 }

@@ -13,6 +13,7 @@
 
 #include "utility.h"
 #include "anaFig_stack.h"
+#include "anaFig_stackRatio.h"
 #include "anaFig_recoCheck.h"
 // namespace :
 //  utility
@@ -36,7 +37,7 @@ namespace ana_fig{
 				TH1D * hr [8][2];
 				TH1D * hr2[8][2];
 				TString tmp;
-				auto tx = new TLatex();  tx->SetTextSize(.08);
+				auto tx = new TLatex();  tx->SetTextSize(.06);
 				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
 				JTCSignalProducer *sp1[8][2];
 				JTCSignalProducer *sp2[8][2];
@@ -101,18 +102,23 @@ namespace input_raw2D{
 				//clearInput();
 				cout<<"signal dumped to "<<dataDumpPath+fname+"_JTCSignal.root"<<endl;
 		}
-		void showSpectra(TString name, TString name1, TString name2, TFile *f1, TFile *f2){
+		void spectraRatio(TString name, TString name1, TString name2, TFile *f1, TFile *f2, bool ispp = 0){
 				auto *cp = new doublePanelFig("c_"+name1+"_"+name2, "", 1, nCent );
 				auto tx = new TLatex();  tx->SetTextSize(.08);
 				auto tl = new TLine();   tl->SetLineStyle(2); tl->SetLineWidth(2);
 				TString tmp;
 				TH1D* hr[nCent];
 				TH1D* h[nCent][2];
+				auto sp = new JTCSignalProducer();
+				int nbin = 21;
+				const Double_t newbin [22] = {100, 120, 136, 152, 168, 184, 200, 216, 232, 248, 264, 280, 296, 312, 328, 344, 360,
+						            380, 400, 432, 500, 600};
 				for(int j=0; j<nCent; ++j){
 						tmp = name1+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						cout<<tmp<<endl;
 						h[j][0] =(TH1D*) f1->Get(tmp); h[j][0]->GetXaxis()->SetTitle("#Delta#eta"); h[j][0]->SetTitle("");
-						h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
+//						h[j][0] =(TH1D*)sp->invariantRebin(h[j][0], Form("jetSpec_0_%d",j), nbin, newbin);
+					//	h[j][0]->Scale(1.0/h[j][0]->Integral("width"));
 						h[j][0]->SetMarkerColor(kBlue+2);
 						h[j][0]->SetLineWidth(1);
 						hr[j]=(TH1D*)h[j][0]->Clone(Form("hr_%d",j));
@@ -123,16 +129,24 @@ namespace input_raw2D{
 						cp->CD(1, 2-j, 0); gPad->SetLogy();
 						tmp = name2+"_all_bjets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt120_Pt1000";
 						h[j][1] =(TH1D*) f2->Get(tmp); h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
-						h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
+//						h[j][1] =(TH1D*)sp->invariantRebin(h[j][1], Form("jetSpec_1_%d",j), nbin, newbin);
+					//	h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
 						cp->addHist(h[j][1], 1, 2-j); 
 						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
-						hr[j]->SetAxisRange(100, 500, "X");  
+						hr[j]->SetAxisRange(100, 500, "X");
+						hr[j]->GetXaxis()->SetNdivisions(505);	
+						hr[j]->SetAxisRange(0., 1, "Y");	
 						cp->addHist(hr[j], 1, 2-j, 1);
 						cp->CD(1, 2-j, 0); tl->DrawLine(-2.5, 0, 2.5, 0);
-						tmp = "Jet spectra: "+cent_label[j];
+						if( ispp ) 
+								tmp = "";
+						else
+								tmp = "Jet spectrum: "+cent_label[j];
 						tx->DrawLatexNDC(0.15,0.87, tmp); 
 						cp->CD(1, 2-j, 1); tl->DrawLine(-2.5, 1, 2.5, 1);
 						//			cp->draw95Area(1,2-j, 100, 500);
+						float frac = h[j][0]->Integral()/h[j][1]->Integral();
+						cout<<"fraction: "<<frac*100<<"%"<<endl;
 				}
 				cp->SaveAs(FigDumpPath+name+"_jetSpectra.gif");
 		}
@@ -187,6 +201,33 @@ namespace signal2D{
 				stackPlot_diff(hpb, hpp, tmp);
 		}
 
+		void drawStackJSRatio(TString name1, TString name2, TString name, bool isNumber = 1){
+				TFile *f1 = TFile::Open(dataDumpPath+name1+"_JTCSignal.root");
+				TFile *f2 = TFile::Open(dataDumpPath+name2+"_JTCSignal.root");
+				JTCSignalProducer *sp1[8][2];
+				JTCSignalProducer *sp2[8][2];
+				TString tmp;
+				TH1* hpb[8][2];
+				TH1* hpp[8];
+				for(int i=0; i<nPt; ++i){
+						for(int j=0; j<nCent; ++j){
+								sp1[i][j] = new JTCSignalProducer();
+								sp2[i][j] = new JTCSignalProducer();
+								if(!isNumber) {sp1[i][j]->read(f1, name1+Form("_pTweighted_%d_%d", i,j));
+										sp2[i][j]->read(f2, name2+Form("_pTweighted_%d_%d", i,j));}
+								else {  sp1[i][j]->read(f1, name1+Form("_%d_%d", i,j));
+										sp2[i][j]->read(f2, name2+Form("_%d_%d", i,j));}
+								sp1[i][j]->doDrIntegral(name1+Form("_%d_%d", i, j));
+								sp2[i][j]->doDrIntegral(name2+Form("_%d_%d", i, j));
+								hpb[i][j]=sp1[i][j]->dr_integral;
+								if(j==0)	hpp[i]=sp2[i][j]->dr_integral;
+						}
+				}
+				tmp = FigDumpPath+"stack_plot_"+name+".pdf";
+				stackPlot_ratio(hpb, hpp, tmp);
+
+		}
+
 		void pull1D(TString fname, TFile *f, bool rebin=1){
 				cout<<"pulling 1D histograms for "<<fname;
 				JTCSignalProducer *sp1[8][2];
@@ -213,7 +254,7 @@ namespace signal2D{
 		}
 
 
-		void pull1D(TString fname, bool rebin){
+		void pull1D(TString fname, bool rebin=1){
 				TFile *f = TFile::Open(dataDumpPath+fname+"_JTCSignal.root");
 				cout<<f->GetName()<<endl;
 				pull1D(fname, f, rebin);
@@ -286,7 +327,7 @@ namespace signal1D {
 
 
 namespace inclusive_input{
-		TFile* gengen_pb_sub0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/incl_gen_gen_sub0_JTCSignal.root");
+		//TFile* gengen_pb_sub0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/incl_gen_gen_sub0_JTCSignal.root");
 		void drawRatio_sub0(TString name1,  TString name2,TString name, bool doBinomial=0){
 				TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name1+"_JTCSignal.root";
 				TFile *f1 = TFile::Open(tmp);
@@ -358,6 +399,8 @@ namespace inclusive_input{
 								sp2[i][j]->doSideBandMixing = doSideMix;
 								sp2[i][j]->getSignal(fname+Form("_pTweighted_%d_%d", i, j));
 								sp2[i][j]->WriteTH2();
+								delete sp1[i][j];
+								delete sp2[i][j];
 								//								cout<<sp2[i][j]->sig->GetName()<<endl;
 						}
 				}
@@ -390,11 +433,11 @@ namespace inclusive_input{
 						h[j][0]->SetAxisRange(1e-6, h[j][0]->GetMaximum()*10, "Y");
 						h[j][0]->SetAxisRange(100, 500 ,"X");
 						//						h[j][0]->SetAxisRange(1e-13, 1e-4,"Y");
-						cp->addHist(h[j][0], 1, ncent-j);
 						cp->CD(1, 2-j, 0); gPad->SetLogy();
 						h[j][1] = hjet[j]; h[j][1]->SetLineColor(kRed);  h[j][1]->SetMarkerColor(kRed);
 						h[j][1]->Scale(1.0/h[j][1]->Integral("width"));
 						cp->addHist(h[j][1], 1, ncent-j); 
+						cp->addHist(h[j][0], 1, ncent-j);
 						hr[j]->Divide(h[j][1]); hr[j]->GetYaxis()->SetNdivisions(505);
 						hr[j]->SetAxisRange(100, 500, "X");  
 						cp->addHist(hr[j], 1, ncent-j, 1);

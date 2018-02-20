@@ -45,6 +45,15 @@ void mcSelector(){
 		TH1I * hcounter[ncsv][2];
 		TH1D* hincl[2];
 
+
+		/* weight for jet spectrum */
+		TF1* fw[2];
+		for(int i=0; i<2; ++i){
+				fw[i]= new TF1(Form("fw_%d",i), "[0]/(1+pow(e,[3]*(x-[2])))+[1]", 120, 500);
+		}
+		fw[0]->SetParameters(4.88179e-01, 5.66606e-01, 1.94709e+02, 2.68637e-02);
+		fw[1]->SetParameters(3.89126e-01, 6.56204e-01, 1.99026e+02, 2.79314e-02);
+
 		for(int i=0; i<2; ++i){
 				htrue_b        [i] = new TH1D(Form("trueB_%d",i) , "", 100, 100, 500);
 				hincl        [i] = new TH1D(Form("incl_%d",i) , "", 100, 100, 500);
@@ -55,7 +64,7 @@ void mcSelector(){
 				}
 		}
 
-		TFile *wf = new TFile("phSpectra.root" , "recreate");
+		TFile *wf = new TFile("phSpectra2.root" , "recreate");
 		Long64_t nev = t->fChain->GetEntriesFast();
 		float wvz=1, whi=1, wpthat=1, w;
 		double pthatbins[10] = {15,30,50,80,120,170,220,280,370,9999};
@@ -70,7 +79,7 @@ void mcSelector(){
 		TF1 *jes_cor_f = new TF1("jes_cor_f", "[0]*exp(-pow(log([2]*x-[2]*[1]),2)/pow([3],2)/2)/[2]/(x-[1])/[3]+[4]+[5]*(x-100)",100, 600);
 		jes_cor_f->SetParameters(0.1, 100, 0.005, 1.12, 0.9, 0.000023);
 		Long64_t jetcounter= 0; 
-		//nev=300000;
+		//nev=200000;
 		Long64_t nmulti=0, nunmatch=0;
 		for(Long64_t jentry = 0; jentry< nev; ++jentry){
 				t->GetEntry(jentry);
@@ -90,24 +99,24 @@ void mcSelector(){
 						if(fabs(t->geneta->at(j))>1.6) continue;
 						hincl[i]->Fill(t->genpt->at(j),w);
 				}
-				for(int j=0;j < t->calo_refpt->size(); ++j){
+				for(int j=0;j < t->calo_jtpt->size(); ++j){
 						//						if(fabs(t->calo_jteta->at(j))>1.6) continue;
-						if((t->calo_refpt->at(j))<80) continue;
+						if((t->calo_jtpt->at(j))<80) continue;
+						//if((t->calo_refpt->at(j))<80) continue;
 
 						//						if((t->calo_trackMax->at(j))/t->calo_corrpt->at(j)<=0.01) continue;
 
-						//if(t->calo_discr_csvV1->at(j)<0.9) continue;
 						int imatch = -1;
 						double dr = 5;
 						int nmatch = 0;
 						for(unsigned int igen=0; igen<t->genpt->size(); igen++){
-								if( fabs(t->genpt->at(igen)-t->calo_refpt->at(j))< .1) {
-										double dr1 = findDR(t->geneta->at(igen), t->genphi->at(igen), t->calo_jteta->at(j),t->calo_jtphi->at(j));
-										if(dr> dr1){
-												dr = dr1;
-												imatch = igen;
-										}
+								double dr1 = findDR(t->geneta->at(igen), t->genphi->at(igen), t->calo_jteta->at(j),t->calo_jtphi->at(j));
+								if(dr> dr1){
+										dr = dr1;
 								}
+								//if( fabs(t->genpt->at(igen)-t->calo_refpt->at(j))< .1) {
+								imatch = igen;
+								//}
 						}
 						if(nmatch>1) {
 								nmulti = nmulti+nmatch;
@@ -117,23 +126,27 @@ void mcSelector(){
 								nunmatch++;
 								continue;
 						}
-
 						float matchedPt = t->genpt ->at(imatch);
 						float matchedEta= t->geneta->at(imatch);
 						float matchedPhi= t->genphi->at(imatch);
+						/*weighting the jet pt */
+						float wpt = 1.0/fw[i]->Eval(matchedPt);
 						/*
-						*/
+						   float matchedPt = t->calo_jtpt ->at(j);
+						   float matchedEta= t->calo_jteta->at(j);
+						   float matchedPhi= t->calo_jtphi->at(j);
 						//float matchedPt = t->calo_corrpt->at(j);
+						*/
 						if(matchedPt<120) continue;
 						if(fabs(matchedEta)>1.6) continue;
 
 						for(int k=0; k<ncsv; k++){
 								if(t->calo_discr_csvV1->at(j)>=csvBin[k]) {
-										htagged_b[k][i]->Fill(matchedPt , w);
+										htagged_b[k][i]->Fill(matchedPt , w*wpt);
 										hcounter [k][i]->Fill(1);
 										if(fabs(t->calo_refparton_flavorForB->at(j)) ==5){
 												hcounter [k][i]->Fill(3);
-												htagged_true_b [k][i]->Fill(matchedPt , w);
+												htagged_true_b [k][i]->Fill(matchedPt , w*wpt);
 										}
 								}
 						}

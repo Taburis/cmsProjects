@@ -14,11 +14,14 @@ namespace kurt_reg{
 		TFile *GenGen_MC_pb_f ;
 		TFile *RecRec_MC_pb_f ;
 		TFile *GenGen_MC_pb_f_sub0 ;
+		TFile *RecGen_MC_pb_f_sub0 ;
 		TFile *data_pb_f ;
 		void loadConfig(){
 				std::cout<<"loading kurt's configuration.."<<std::endl;
 				//pp input 
 				data_pb_f =TFile::Open("/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/PbPb_5TeVData_fixMix_fineBinTrkCorrs_withTrkCorrEtaSymmV2_finalJFFs.root");	
+
+				GenGen_MC_pb_f_sub0 =TFile::Open("/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/PbPb_5TeVMC_withMix_GenGen_CymbalTune_fullCymbalCorrs_inclJetBinning.root");	
 
 				GenGen_MC_pp_f =TFile::Open("/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/pp_Pythia6MC_GenGen_withMix_inclJetBinning_finalJFFs.root");	
 				RecRec_MC_pp_f =TFile::Open("/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/pp_Pythia6MC_RecoReco_withMix_inclJetBinning_finalJFFs.root");	
@@ -36,6 +39,40 @@ namespace kurt_reg{
 		TH2D* GenGen_MC_pb_mix[9][5];	
 		TH2D* RecRec_MC_pb_sig[9][5];
 		TH2D* RecRec_MC_pb_mix[9][5];
+
+		TH2D* hjet[5];
+		TH2D* mix[9][5];
+		TH2D* sig[9][5];
+
+		void getRaw2D(TFile *f, TString cap){
+				float trkBinWidth[] = {0.3, 1, 1,1, 4, 4, 4, 4, 50}; 
+				TString stmp;
+				for(int j=0; j<5; ++j){
+						stmp = cap+"_all_jets_corrpT"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt100_Pt1000";
+						hjet[j]= (TH1D*)f->Get(stmp);
+						for(int i=0;i<9; ++i){
+								stmp = cap+"_hJetTrackME"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt100_Pt1000_"
+										+trk_tag[i]+"_"+trk_tag[i+1];
+								mix[i][j]=(TH2D*)f->Get(stmp);
+								stmp = cap+"_hJetTrackSignalBackground"+cent_tag[j]+"_"+cent_tag[j+1]+"_Pt100_Pt1000_"
+										+trk_tag[i]+"_"+trk_tag[i+1];
+								sig[i][j]=(TH2D*)f->Get(stmp);
+								sig[i][j]->Scale(1./trkBinWidth[i]);
+						}
+				}
+				hjet[3]->Add(GenJet_pb[4]);
+				for(int i=0;i<9; ++i){
+						//combined the last two bins together
+						sig[i][3]->Add(sig[i][4]);
+						for(int j=0; j<4; ++j){
+								//adding the cent50-70 and cent70-100 together:
+								sig[i][j]->Scale(1.0/hjet[j]->Integral());
+						}
+				}
+		}
+
+		void getGenGen_sube0();
+
 		void getGenGen_pb(){
 				float trkBinWidth[] = {0.3, 1, 1,1, 4, 4, 4, 4, 50}; 
 				TString stmp;

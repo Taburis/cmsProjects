@@ -10,18 +10,6 @@ TString trk_tag[] = {"0.7 < p_{T}^{track} < 1 GeV","1 < p_{T}^{track} < 2 GeV",
 TString cent_label[]={"Cent. 0-30%", "Cent. 30-100%"};
 
 namespace utility{
-		void quickLabels_loosCanvase(mCanvasLoose *c){
-				auto tx = new TLatex();  
-				tx->SetTextSize(.08);
-				for(int i=0; i<nPt; ++i){
-						for(int j=0; j<nCent; ++j){
-								TString tmp = trk_tag[i]+", "+cent_label[j];
-								c->CD(i+1, 2-j);
-								tx->DrawLatexNDC(0.02,0.98, tmp); 
-						}
-				}
-		}
-
 		void quickRatio(TString name, TH1* h1[8][2], TH1* h2[8][2], float x1, float x2, bool ispp=1){
 				int ncent = ispp ? 1: 2; int drop =1;
 				auto *cp = new doublePanelFig("c_"+name, "", nPt-drop,ncent );
@@ -53,6 +41,20 @@ namespace utility{
 				}
 				cp->SaveAs(FigDumpPath+"quickLook_"+name+"_overlay.gif");
 		}
+		
+		void quickLabels_loosCanvase(mCanvasLoose *c){
+				auto tx = new TLatex();  
+				tx->SetTextSize(.08);
+				for(int i=0; i<nPt; ++i){
+						for(int j=0; j<nCent; ++j){
+								TString tmp = trk_tag[i]+", "+cent_label[j];
+								c->CD(i+1, 2-j);
+								tx->DrawLatexNDC(0.02,0.98, tmp); 
+						}
+				}
+		}
+
+
 
 		void quickJSOverlay(TString name1, TString name2, TFile *f1, TFile *f2, float x1, float x2){
 				cout<<"drawing the overlay for "<<name1<<" and "<<name2<<endl;	

@@ -29,6 +29,8 @@ class signalFactoryBase {
 				void  doDrPhaseCorrection(TH2D* signal, TH1D* drDist);
 				TH1* invariantRebin(TH1* h, TString name , int n, const Double_t * bins);
 				TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax);
+				TH1* projectionX(TH2D* h, float x, float y);
+				TH1* projectionY(TH2D* h, float x, float y);
 
 		public : 
 				float midLeft = -0.15;
@@ -36,6 +38,21 @@ class signalFactoryBase {
 				TString dump_path = "";
 				TH1D* hgeo = NULL;
 };
+
+TH1* signalFactoryBase::projectionX(TH2D* h, float x, float y){
+		int xbin = h->GetYaxis()->FindBin(x);
+		int ybin = h->GetYaxis()->FindBin(y);
+		ybin = h->GetYaxis()->FindBin(y-h->GetYaxis()->GetBinWidth(ybin));
+		TString name = h->GetName(); name = "projX_"+name;
+		return h->ProjectionX(name, xbin, ybin );
+}
+
+TH1* signalFactoryBase::projectionY(TH2D* h, float x, float y){
+		int xbin = h->GetXaxis()->FindBin(x);
+		int ybin = h->GetXaxis()->FindBin(y)-1;
+		TString name = h->GetName(); name = "projY_"+name;
+		return h->ProjectionY(name, xbin, ybin );
+}
 
 TH2D* signalFactoryBase::mixingTableMaker(TH2D* mix, bool doSmooth){
 		//make the mixing table invariant
@@ -287,7 +304,8 @@ void signalFactoryBase::doDrPhaseCorrection(TH2D* signal, TH1D* h1){
 		return ;
 }
 
-TH1* signalFactoryBase::invariantRebin(TH1* h, TString name , int n, const Double_t * bins){
+TH1* signalFactoryBase::invariantRebin(TH1* h1, TString name , int n, const Double_t * bins){
+		TH1* h=(TH1*) h1->Clone("tmp");
 		//input h needs to be invariant 
 		for(int i=1; i<h->GetNbinsX()+1; ++i){
 				Double_t wd = h->GetBinWidth(i);
@@ -300,6 +318,7 @@ TH1* signalFactoryBase::invariantRebin(TH1* h, TString name , int n, const Doubl
 				hh->SetBinContent(i, hh->GetBinContent(i)/wd);
 				hh->SetBinError  (i, hh->GetBinError(i)/wd);
 		}
+		delete h;
 		return hh;
 }
 

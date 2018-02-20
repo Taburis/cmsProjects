@@ -8,24 +8,80 @@ void runAnalysis(){
 		//input_raw2D::get2DInput_RecGen(); input_raw2D::pullSig("rec_gen");
 		//input_raw2D::get2DInput_RecRec(); input_raw2D::pullSig("rec_rec");
 		//input_raw2D::get2DInput_GenRec(); input_raw2D::pullSig("gen_rec");
-		//input_raw2D::get2DInput_GenRec(); input_raw2D::pullSig("gen_rec");
-/* P+H gen-gen sube0 trueB*/
+/* PYTHIA gen-gen tagged B ------------------
+		input_raw2D::get2DPythiaInput_GenGen_ref(); 
+		input_raw2D::getMix_GenGen_nsube0(); 
+		input_raw2D::pullSig("gen_gen_PYTHIA_taggedB");
+		signal2D::pull1D("gen_gen_PYTHIA_taggedB", 1);
+		signal1D::checkBkg("gen_gen_PYTHIA_taggedB");
+ */
+/* PYTHIA gen-rec tagged B ------------------
+		input_raw2D::get2DPythiaInput_GenRec(); 
+		input_raw2D::getMix_GenGen_nsube0(); 
+		input_raw2D::pullSig("gen_rec_PYTHIA_taggedB");
+		signal2D::pull1D("gen_rec_PYTHIA_taggedB", 1);
+		signal1D::checkBkg("gen_rec_PYTHIA_taggedB");
+ */
+		input_raw2D::get2DPythiaInput_GenRec(); 
+	//	input_raw2D::getMix_GenGen_nsube0(); 
+		input_raw2D::pullSig("gen_rec_PYTHIA_taggedB_test");
+		signal2D::pull1D("gen_rec_PYTHIA_taggedB_test", 1);
+		signal1D::checkBkg("gen_rec_PYTHIA_taggedB_test");
+
+		ana_fig::drawRecoCheck("gen_rec_PYTHIA_taggedB_test", "gen_gen_PYTHIA_taggedB");
+		
+/* PYTHIA gen-gen tagged B ----------------------------
+		input_raw2D::get2DPythiaCSV75_GenGen(); 
+		input_raw2D::getMix_GenGen_nsube0(); 
+		input_raw2D::pullSig("gen_gen_PYTHIA_csv75_taggedB");
+		signal2D::pull1D("gen_gen_PYTHIA_csv75_taggedB", 1);
+		signal1D::checkBkg("gen_gen_PYTHIA_csv75_taggedB");
+		ana_fig::drawRecoCheck("gen_gen_PYTHIA_csv75_taggedB", "gen_gen_PYTHIA_csv75_tagged_trueB");
+*/
+
+/***  analysis on pythia ***/
+		/*
+		signal2D::drawJSratio("gen_gen_PYTHIA_csv75_taggedB","gen_gen_PYTHIA_csv75_tagged_trueB", "csv75_tagged_over_tagged_true", 1);
+		input_raw2D::spectraRatio("csv75_tagged_true_over_tagged","GenJet_GenTrack", "GenJet_GenTrack"
+						, input_raw2D::gengen_pythia_tagged_trueB_csv75_f, input_raw2D::gengen_pythia_csv75_f);
+						*/
+/* P+H gen-gen sube0 trueB ----------------------------
 		//input_raw2D::get2DInput_GenGen_sub0_trueB(); input_raw2D::getMix_GenGen_nsube0(); input_raw2D::pullSig("gen_gen_sub0_trueB");
 		//input_raw2D::get2DInput_GenGen_sub0_trueB(); input_raw2D::getMix_GenGen_nsube0(); input_raw2D::pullSig("gen_gen_sub0_trueB", 1.7, 2.7);
-		//input_raw2D::get2DInput_GenGen_sub0_trueB(); input_raw2D::pullSig("gen_gen_sub0_trueB");
-		//signal2D::pull1D("gen_gen_sub0_trueB", 1);
-		//signal1D::checkBkg("gen_gen_sub0_trueB");
+		input_raw2D::get2DInput_GenGen_sub0_trueB(); 
+		//input_raw2D::getMix_GenGen_nsube0_weighted();
+		input_raw2D::pullSig("gen_gen_sub0_trueB");
+		signal2D::pull1D("gen_gen_sub0_trueB", 1);
+		signal1D::checkBkg("gen_gen_sub0_trueB");
+*/
 		
 		//input_raw2D::get2DInput_GenGen_sub0_trueB(); input_raw2D::getMix_GenGen(); input_raw2D::pullSig("gen_gen_sub0_trueB_fineBin");
 		//signal2D::pull1D("gen_gen_sub0_trueB_fineBin", 0);
-/* P+H gen-gen sube0 tagged trueB*/
+
+/* P+H gen-gen sube0 tagged trueB weight--------------------------
+		input_raw2D::get2DInput_GenGen_sub0_tagged_trueB_weighted(); 
+	//	input_raw2D::getMix_GenGen_nsube0_weighted(); 
+		input_raw2D::pullSig("gen_gen_sub0_tagged_trueB_weighted");
+		signal2D::pull1D("gen_gen_sub0_tagged_trueB_weighted",1);
+		signal1D::checkBkg("gen_gen_sub0_tagged_trueB_weighted");
+ */
+
+/* P+H gen-gen sube0 tagged trueB--------------------------*/
 		//input_raw2D::get2DInput_GenGen_sub0_tagged_trueB(); input_raw2D::getMix_GenGen_nsube0(); input_raw2D::pullSig("gen_gen_sub0_tagged_trueB");
 		//input_raw2D::get2DInput_GenGen_sub0_tagged_trueB(); input_raw2D::getMix_GenGen(); input_raw2D::pullSig("gen_gen_sub0_tagged_trueB");
 		//input_raw2D::get2DInput_GenGen_sub0_tagged_trueB(); input_raw2D::pullSig("gen_gen_sub0_tagged_trueB");
 		//signal2D::pull1D("gen_gen_sub0_tagged_trueB",1);
 		//signal1D::checkBkg("gen_gen_sub0_tagged_trueB");
+
+/* P+H gen-gen sube0 weighted -----------------------------
+		input_raw2D::get2DInput_GenGen_sub0_weighted(); 
+		input_raw2D::getMix_GenGen(); 
+		input_raw2D::pullSig("gen_gen_sub0_weighted");
+		signal2D::pull1D("gen_gen_sub0_weighted",1);
+		signal1D::checkBkg("gen_gen_sub0_weighted");
+  */
 		
-/* P+H gen-gen sube0 */
+/* P+H gen-gen sube0 --------------------------------------*/
 		//input_raw2D::get2DInput_GenGen_sub0(); input_raw2D::getMix_GenGen(); input_raw2D::pullSig("gen_gen_sub0");
 		//input_raw2D::get2DInput_GenGen_sub0(); input_raw2D::getMix_GenGen_nsube0(); input_raw2D::pullSig("gen_gen_sub0");
 		//input_raw2D::get2DInput_GenGen_sub0(); input_raw2D::pullSig("gen_gen_sub0", 1.7, 2.7);
@@ -36,10 +92,21 @@ void runAnalysis(){
 		//signal2D::pull1D("gen_gen_sub0_fineBin",0);
 		//signal1D::checkBkg("gen_gen_sub0_fineBin");
 
-/* P+H gen-gen nsube0 */
+/* P+H gen-gen nsube0 
 		input_raw2D::get2DInput_GenGen_nsube0(); input_raw2D::pullSig("gen_gen_nsub0", 1.3, 2.);
-		//signal2D::pull1D("gen_gen_nsub0");
+		signal2D::pull1D("gen_gen_nsub0");
+		*/
 
+/* P+H gen-gen 
+		input_raw2D::get2DInput_GenGen(); input_raw2D::getMix_GenGen_nsube0(); input_raw2D::pullSig("gen_gen");
+		signal2D::pull1D("gen_gen");
+		signal1D::checkBkg("gen_gen");
+		*/
+/* P+H gen-rec 
+		input_raw2D::get2DInput_GenRec(); input_raw2D::getMix_GenGen_nsube0(); input_raw2D::pullSig("gen_rec");
+		signal2D::pull1D("gen_rec");
+		signal1D::checkBkg("gen_rec");
+		*/
 /* P+H rec-gen sube0 */
 		//input_raw2D::get2DInput_RecGen_sub0(); input_raw2D::pullSig("rec_gen_sub0");
 		//signal2D::pull1D("rec_gen_sub0");
@@ -63,26 +130,32 @@ void runAnalysis(){
 		//inclusive_input::pullSig("incl_gen_gen_sub0", 1.5, 2.5, 1);
 		//signal2D::pull1D("incl_gen_gen_sub0", 1);
 		//signal1D::checkBkg("incl_gen_gen_sub0");
-	
+
+/* jet spectrum check
+		input_raw2D::spectraRatio("weighted_tagged_trueB_over_trueB","GenJet_GenTrack", "GenJet_GenTrack",
+						input_raw2D::gengen_pb_sube0_tagged_trueB_weight_f, input_raw2D::gengen_pb_sube0_trueB_f);
+ */	
 
 /* 4 pumutation stacks in particle yield */
 	//tracking 
 		//ana_fig::drawRecoCheck("gen_gen_sub0", "gen_rec");
 	//tagging 
-		ana_fig::drawRecoCheck("gen_gen_sub0", "incl_gen_gen_sub0");
+//		ana_fig::drawRecoCheck("gen_gen_sub0_tagged_trueB_weighted", "gen_gen_sub0_trueB");
+		//ana_fig::drawRecoCheck("gen_gen_sub0", "incl_gen_gen_sub0");
 		//ana_fig::drawRecoCheck("gen_gen_sub0_trueB", "incl_gen_gen_sub0");
 		//ana_fig::drawRecoCheck("rec_gen_sub0", "gen_gen_sub0_trueB");
 		//ana_fig::drawRecoCheck("rec_gen_sub0", "gen_gen_sub0");
 		//ana_fig::drawRecoCheck("rec_gen_sub0", "gen_gen_sub0_trueB");
-		//ana_fig::drawRecoCheck("gen_gen_sub0", "gen_gen_sub0_tagged_trueB");
+		//ana_fig::drawRecoCheck("gen_gen_sub0", "gen_gen_sub0_trueB");
 		//ana_fig::drawRecoCheck("gen_gen_sub0_tagged_trueB", "gen_gen_sub0_trueB");
-		ana_fig::drawRecoCheck("gen_gen_sub0", "gen_gen_sub0_trueB");
-		//ana_fig::drawRecoCheck("gen_rec", "gen_gen");
+/* PAS style figures */
+		//ana_fig::drawRecoCheck("gen_gen_sub0", "gen_gen_sub0_trueB");
 		//ana_fig::drawTrackRecoCheck("rec_jet_track_test","rec_gen", "rec_rec");
 		//signal2D::drawStackJSDiff("rec_gen","rec_gen_pythia", "rec_gen_stackClosure", 1);
 		//signal2D::drawStackJSDiff("gen_gen","gen_gen_pythia", "gen_gen_stackClosure", 1);
 		//signal2D::drawStackJSDiff("data_pb","gen_gen_pythia", "pre", 1);
-		//signal2D::drawStackJSDiff("data_pb","rec_gen_pythia", "pre2", 1);
+		//signal2D::drawStackJSDiff("data_pb","gen_gen_pythia", "pre2", 1);
+		//signal2D::drawStackJSRatio("data_pb","gen_gen_pythia", "js_pre", 0);
 
 	// pythia:	
 		//input_raw2D::get2DPythiaInput_GenGen(); input_raw2D::pullSig("gen_gen_pythia");
@@ -162,3 +235,4 @@ void runAnalysis(){
 		//signal1D::checkBkg("gen_gen");
 		//getting the 4-commuted tabels for jet and track reco validation check 
 }
+

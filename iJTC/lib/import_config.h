@@ -7,6 +7,8 @@ namespace input_raw2D{
 
 		TFile *data_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/Data_PbPb_5TeV_bJTC.root");
 		TFile *gengen_pb_sube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_csvCut_sube0.root");
+		TFile *gengen_pb_sube0_weighted_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_sube0_1stFeb18_corr.root");
+		TFile *gengen_pb_nsube0_weighted_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_nsube0_weighted.root");
 		TFile *gengen_pb_sube0_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_sub0_trueB.root");
 		TFile *recgen_pb_nsube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_PbPb_5TeV_bJTC_nsub0_25Jan18.root");
 		TFile *recgen_pb_sube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_PbPb_5TeV_bJTC_sub0.root");
@@ -15,12 +17,17 @@ namespace input_raw2D{
 		TFile *gengen_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_HPOn_CSVcutOnly.root");
 		TFile *genrec_pb_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_PbPb_5TeV_bJTC_HPOn_CSVcutOnly.root");
 		TFile *gengen_pb_sube0_tagged_trueB_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_bTagged_trueB_sub0.root");
+		TFile *gengen_pb_sube0_tagged_trueB_weight_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_sube0_tagged_trueB_jetSpecWeighted_1stFeb18.root");
 		TFile *gengen_pb_nsube0_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_PbPb_5TeV_bJTC_nsube0_25Jan18.root");
 
+		TFile *gengen_pythia_csv75_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_5TeV_bJTC_PYTHIA_taggedB_csv75.root");
+		TFile *gengen_pythia_tagged_trueB_csv75_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_5TeV_bJTC_PYTHIA_tagged_trueB_csv75.root");
 		TFile *gengen_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_5TeV_bJTC_pythia.root");
 		TFile *recgen_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecGen_5TeV_bJTC_pythia.root");
-		TFile *genrec_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_5TeV_bJTC_pythia.root");
+		TFile *genrec_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_5TeV_bJTC_PYTHIA_taggedB_test.root");
 		TFile *recrec_pythia_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/RecRec_5TeV_bJTC_pythia.root");
+		TFile *genrec_pythia_officialCorr_f = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenRec_5TeV_bJTC_PYTHIA_taggedB_looseCut_officialCorr.root");
+		TFile *gengen_pythia_ref = TFile::Open("/Users/tabris/cmsProjects/iJTC/dataSet/correlation/GenGen_5TeV_bJTC_PYTHIA_taggedB_reference.root");
 		TH2D* raw_sig[8][2];
 		TH2D* raw_sig_pTweighted[8][2];
 		TH2D* mixing [8][2];
@@ -78,20 +85,28 @@ namespace input_raw2D{
 		void get2DInput_GenGen_sub0_tagged_trueB(){ get2DInput(gengen_pb_sube0_tagged_trueB_f, "GenJet_GenTrack"); }
 		void get2DInput_GenGen_sub0_trueB(){ get2DInput(gengen_pb_sube0_trueB_f, "GenJet_GenTrack"); }
 
+		void get2DInput_GenGen_sub0_weighted(){ get2DInput(gengen_pb_sube0_weighted_f, "GenJet_GenTrack"); }
+		void get2DInput_GenGen_sub0_tagged_trueB_weighted(){ get2DInput(gengen_pb_sube0_tagged_trueB_weight_f, "GenJet_GenTrack"); }
+
 		void get2DInput_RecGen(){ get2DInput(recgen_pb_f, "RecoJet_GenTrack"); }
 		void get2DInput_RecGen_nsube0(){ get2DInput(recgen_pb_nsube0_f, "RecoJet_GenTrack"); }
 		void get2DInput_RecGen_sub0(){ get2DInput(recgen_pb_sube0_f, "RecoJet_GenTrack"); }
 
 		void getMix_GenGen(){ getMix(gengen_pb_f, "GenJet_GenTrack"); }
 		void getMix_GenGen_nsube0(){ getMix(gengen_pb_nsube0_f, "GenJet_GenTrack"); }
+		void getMix_GenGen_nsube0_weighted(){ getMix(gengen_pb_nsube0_weighted_f, "GenJet_GenTrack"); }
 		void get2DInput_GenRec(){ get2DInput(genrec_pb_f, "GenJet_RecoTrack"); }
 		void get2DInput_RecRec(){ get2DInput(recrec_pb_f, "RecoJet_RecoTrack"); }
 
 
+		void get2DPythiaCSV75_GenGen(){ get2DInput(gengen_pythia_csv75_f, "GenJet_GenTrack"); }
+		void get2DPythiaCSV75_GenGen_tagged_trueB(){ get2DInput(gengen_pythia_tagged_trueB_csv75_f, "GenJet_GenTrack"); }
 		void get2DPythiaInput_GenGen(){ get2DInput(gengen_pythia_f, "GenJet_GenTrack"); }
 		void get2DPythiaInput_RecGen(){ get2DInput(recgen_pythia_f, "RecoJet_GenTrack"); }
 		void get2DPythiaInput_GenRec(){ get2DInput(genrec_pythia_f, "GenJet_RecoTrack"); }
 		void get2DPythiaInput_RecRec(){ get2DInput(recrec_pythia_f, "RecoJet_RecoTrack"); }
+		void get2DPythiaInput_GenRec_officialCorr(){get2DInput(genrec_pythia_officialCorr_f, "GenJet_RecoTrack"); }
+		void get2DPythiaInput_GenGen_ref(){ get2DInput(gengen_pythia_ref, "GenJet_GenTrack"); }
 }
 
 namespace signal2D {
@@ -137,4 +152,3 @@ namespace signal2D {
 		void getRecRec(){ getHist(recrec_pb_f, "rec_rec");}
 		void getRecGen(){ getHist(recgen_pb_f, "rec_gen");}
 }
-
