@@ -1,9 +1,13 @@
 
 #include "../../lib/import_pf_config.h"
 #include "../../lib/JTCSignalProducer.h"
+#include "../../lib/stackHist.h"
 #ifndef xPlotStyle_H
 #include "../../lib/xPlotStyle.h"
 #endif
+#ifndef utility_pf_H
+#define utility_pf_H
+
 
 TString dataDumpPath = "/Users/tabris/cmsProjects/iJTC/dataSet/correlation/pfJetCorrelation/";
 TString FigDumpPath  = "/Users/tabris/cmsProjects/iJTC/macros/fig_pfJets/";
@@ -35,13 +39,33 @@ JTCSignalProducer*** batchRead1D(TString name,bool isNumber = 0){
 		return sp;
 }
 
-void getSig(TString name, TH2D* h[8][2], bool isNumber=1){
-		TFile *f = TFile::Open(dataDumpPath +name+"_JTCSignal.root");
-		for(int i=0; i<8; ++i){
+void batchGet2D(TString name,TString name2, TH2D* h[8][2], bool isNumber=1){
+		TFile *f = new TFile(dataDumpPath +name2+"_JTCSignal.root");
+		for(int i=1; i<nPt; ++i){
 				for(int j=0; j<2; ++j){
-						h[i][j]=(TH2D*) f->Get("signal_"+name+Form("_%d_%d",i,j));
+						if(isNumber) h[i][j]=(TH2D*) f->Get(name+Form("_%d_%d",i,j));
+						else h[i][j]=(TH2D*) f->Get(name+Form("_pTweighted_%d_%d",i,j));
+					//	cout<<h[i][j]->GetName()<<endl;
+					//cout<<name+Form("_pTweighted_%d_%d",i,j)<<endl;
 				}
 		}
+}
+
+void getSig(TString name, TH2D* h[8][2], bool isNumber=1){
+		batchGet2D("signal_"+name,name, h, isNumber);
+}
+
+void cloneRawFromInput(TString name, TH2D* h[8][2], bool isNumber=1){
+		for(int i=0; i<8; ++i){
+				for(int j=0; j<2; ++j){
+						if( isNumber) h[i][j]=(TH2D*) raw_sig[i][j]->Clone(name+Form("_%d_%d",i,j));
+						else h[i][j]=(TH2D*) raw_sig_pTweighted[i][j]->Clone(name+Form("_%d_%d",i,j));
+				}
+		}
+}
+
+void getRawSig(TString name, TH2D* h[8][2], bool isNumber=1){
+		batchGet2D("raw_"+name, name, h, isNumber);
 }
 
 void getSig(TString name, TH2D* h[8][2], TH2D* h2[8][2]){
@@ -50,7 +74,7 @@ void getSig(TString name, TH2D* h[8][2], TH2D* h2[8][2]){
 				for(int j=0; j<2; ++j){
 						h[i][j]=(TH2D*) f->Get("signal_"+name+Form("_%d_%d",i,j));
 						//h2[i][j]=(TH2D*) f->Get("signal_"+name+Form("_pTweighted_%d_%d",i,j));
-	//					cout<<h[i][j]->GetName()<<endl;
+						//					cout<<h[i][j]->GetName()<<endl;
 				}
 		}
 }
@@ -153,26 +177,26 @@ void checkBkg(TString name, int ispb = 0){
 						gPad->SetBottomMargin(0.18);
 						sp1[i][j]->drawBkgCheck();
 						tx->DrawLatexNDC(0.02,0.93, tmp); 
-/*
-						cp1->CD(i+1, ncol-j);
-						gPad->SetTopMargin(0.1);
-						gPad->SetBottomMargin(0.18);
-						sp1[i][j]->drawBkgCheck(0);
-						tx->DrawLatexNDC(0.02,0.93, tmp); 
-						*/
-						
+						/*
+						   cp1->CD(i+1, ncol-j);
+						   gPad->SetTopMargin(0.1);
+						   gPad->SetBottomMargin(0.18);
+						   sp1[i][j]->drawBkgCheck(0);
+						   tx->DrawLatexNDC(0.02,0.93, tmp); 
+						   */
+
 						cp2->CD(i+1, ispb-j);
 						gPad->SetTopMargin(0.1);
 						gPad->SetBottomMargin(0.18);
 						sp2[i][j]->drawBkgCheck();
 						tx->DrawLatexNDC(0.02,0.93, tmp); 
-/*
-						cp2->CD(i+1, ncol-j);
-						gPad->SetTopMargin(0.1);
-						gPad->SetBottomMargin(0.18);
-						sp2[i][j]->drawBkgCheck(0);
-						tx->DrawLatexNDC(0.02,0.93, tmp); 
-*/
+						/*
+						   cp2->CD(i+1, ncol-j);
+						   gPad->SetTopMargin(0.1);
+						   gPad->SetBottomMargin(0.18);
+						   sp2[i][j]->drawBkgCheck(0);
+						   tx->DrawLatexNDC(0.02,0.93, tmp); 
+						   */
 						cp3->CD(i+1, ispb-j);
 						gPad->SetTopMargin(0.1);
 						gPad->SetBottomMargin(0.18);
@@ -216,6 +240,7 @@ void checkBkg(TString name, int ispb = 0){
 		}
 }
 
+
 void spectraRatio(TString name, TString name1, TString name2, TFile *f1, TFile *f2, bool ispp = 0){
 		auto *cp = new doublePanelFig("c_"+name1+"_"+name2, "", 1, nCent );
 		auto tx = new TLatex();  tx->SetTextSize(.08);
@@ -258,20 +283,21 @@ void spectraRatio(TString name, TString name1, TString name2, TFile *f1, TFile *
 		cp->SaveAs(FigDumpPath+name+"_jetSpectra.gif");
 }
 
+
 void drawRecoCheck(TString name1, TString name2, bool ver=1){
 		recCheck_pb("recoCheck_"+name1+"_over_"+name2, name1, name2, ver);
 }
 /*
-void getHist(TString name, TH1* h[8][2]){
-		TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name+"_drIntegral.root";
-		TFile*f = TFile::Open(tmp);
-		for(int i=0; i<8; ++i){
-				for(int j=0; j<2; ++j){
-						h[i][j]=(TH1*) f->Get(name+Form("_%d_%d",i,j));
-				}
-		}
-}
-*/
+   void getHist(TString name, TH1* h[8][2]){
+   TString tmp ="/Users/tabris/cmsProjects/iJTC/dataSet/correlation/"+name+"_drIntegral.root";
+   TFile*f = TFile::Open(tmp);
+   for(int i=0; i<8; ++i){
+   for(int j=0; j<2; ++j){
+   h[i][j]=(TH1*) f->Get(name+Form("_%d_%d",i,j));
+   }
+   }
+   }
+   */
 
 void getDr(TString name, TH1D* h[8][2], bool isNumber = 1){
 		TString tmp = dataDumpPath+name+"_JTCProj.root";
@@ -280,10 +306,11 @@ void getDr(TString name, TH1D* h[8][2], bool isNumber = 1){
 				for(int j=0; j<2; ++j){
 						if(isNumber) tmp = "dr_"+name+Form("_%d_%d", i,j);
 						else tmp = "dr_"+name+Form("_pTweighted_%d_%d", i,j);
+						cout<<tmp<<endl;
 						h[i][j]=(TH1D*)f->Get(tmp)->Clone(tmp);
 				}
 		}
-//		f->Close();
+		//		f->Close();
 }
 
 void JSSubtraction(TString name1, TString name2, TString wname,  float frac){
@@ -355,4 +382,47 @@ void adjustYrange(TH1* h ){
 		h->SetAxisRange(h->GetMinimum()-0.1*range, h->GetMaximum()+0.12*range, "Y");
 }
 
+void style20(TH1* h, Color_t color, float size){
+		h->SetMarkerStyle(20);
+		h->SetMarkerSize(size);
+		h->SetMarkerColor(color);
+		h->SetLineColor(color);
+}
 
+void batch_sig_subtraction(TString name, TString name1, TString name2, bool isNumber = 0){
+		TH2D* sig[8][2], *sub[8][2];
+		float trkbin [] = {1, 1, 1, 4, 4, 1};
+		getSig(name1, sig, isNumber);
+		getSig(name2, sub, isNumber);
+		TFile *wf = new TFile(dataDumpPath+name+Form("_JTCSignal.root"), "recreate");
+		TH2D *corr[8][2];
+		for(int i=1; i<nPt; ++i){
+				for(int j=0; j<2; ++j){
+//						cout<<sig[i][j]->GetName()<<endl;
+						corr[i][j]=(TH2D*)sig[i][j]->Clone(name+Form("_%d_%d",i,j));
+						corr[i][j]->Add(sub[i][j],-1);
+						if(isNumber)corr[i][j]->Scale(1.0/trkbin[i]);
+						corr[i][j]->Write();
+				}
+		}
+}
+
+void symmetrize(TH1D* h, float x1, float x2){
+		float origin = (x1+x2)/2;
+		int nmid = h->FindBin(origin);
+		int no = h->FindBin(x1);
+		float cont, sigma;
+		for(int i=1; i<nmid-no+1 ; ++i){
+				cont = (h->GetBinContent(nmid+i)+h->GetBinContent(nmid-i))/2;
+				h->SetBinContent(nmid+i, cont);
+				h->SetBinContent(nmid-i, cont);
+				sigma= pow(pow(h->GetBinError(nmid+i),2) + pow(h->GetBinError(nmid-i),2),0.5)/2;
+				h->SetBinError(nmid+i, sigma);
+				h->SetBinError(nmid-i, sigma);
+				if(i== no) break;
+		}
+}
+
+
+
+#endif

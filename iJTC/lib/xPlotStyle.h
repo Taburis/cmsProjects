@@ -22,7 +22,8 @@ class mCanvasLoose : public mCanvasBase {
 		public: 
 				mCanvasLoose(const char *name, const char *title , int n, int m , float width = 300, float height=275);
 				void CD(int i, int j){this->cd((i-1)*ncol+j);}
-				void drawHist(TH1* h, int i, int j);
+				void drawHist(TH1* h, int i, int j, TString opt ="");
+				void drawHist(TH1* h, int i, TString opt ="");
 				void histStyle(TH1* h);
 		public:
 				TLine *tl; TBox *box;
@@ -39,11 +40,18 @@ mCanvasLoose::mCanvasLoose(const char *name, const char *title , int x, int y , 
 		box = new TBox(); box->SetFillColorAlpha(kGray+1, 0.5);
 }
 
-void mCanvasLoose::drawHist(TH1* h, int i, int j){
+void mCanvasLoose::drawHist(TH1* h, int i, int j, TString opt){
 		CD(i,j);
-		gPad->SetMargin(0.15,0.05, 0.15, 0.05);
+		gPad->SetMargin(0.15,0.04, 0.15, 0.08);
 		histStyle(h);
-		h->Draw("same");
+		h->Draw(opt+"same");
+}
+
+void mCanvasLoose::drawHist(TH1* h, int i, TString opt){
+		cd(i);
+		gPad->SetMargin(0.15,0.04, 0.15, 0.08);
+		histStyle(h);
+		h->Draw(opt+"same");
 }
 
 void mCanvasLoose::histStyle(TH1 *h){

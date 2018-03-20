@@ -218,8 +218,8 @@ void plot_js_normal(){
 	tl->DrawLatex(0.755, 0.055, "0");
 	tl->DrawLatex(0.985, 0.055, "1");
 
-	c->SaveAs("js_dr_normal_new_pp.eps");
-	c->SaveAs("js_dr_normal_new_pp.pdf");
+	c->SaveAs("js_dr_normal_test.eps");
+	c->SaveAs("js_dr_normal_test.pdf");
 	//c->SaveAs("js_dr_normal_v3.eps");
 	//c->SaveAs("js_dr_normal_v3.pdf");
 }

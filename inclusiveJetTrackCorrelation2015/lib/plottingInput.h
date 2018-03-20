@@ -52,22 +52,30 @@ namespace plottingInput{
 		TString path = "/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/";
 		// nominal plotting input files 
 		//loading syst error
+//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffCutAt0p3.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffCutAt0p3.root");
+	//	TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_noJff.root");
+	//	TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_noJff.root");
+		//TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffNotruncated.root");
+		//TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffNotruncated.root");
+//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_JFF0p5Truncated.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_JFF0p5Truncated.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
+//		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_combined.root");
+//		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_for_pp_and_stat_err.root");
+		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
+		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
+
+// paper setting
+//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_fixErr.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_kurt_pp.root");
+		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_final.root");
+		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_final.root");
+		TFile *yield_dr_pb_f = TFile::Open(path+"Jet_Shapes_fixErr.root");
+		TFile *yield_dr_pp_f = TFile::Open(path+"Jet_Shapes_kurt_pp.root");
 		TFile *js_syst_f = TFile::Open(path+"js_syst_err.root");
 		TFile *yield_proj_syst_f = TFile::Open(path+"yield_proj_syst_err.root");
 		TFile *run1_ref_f= TFile::Open(path + "Inclusive_Data_AllPlots.root");
-		//TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_fixErr.root");
-		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_dhanush_pp.root");
-		//TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_final.root");
-		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_final.root");
-//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_kurt_pp.root");
-//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
-		TFile *yield_dr_pb_f = TFile::Open(path+"Jet_Shapes_fixErr.root");
-		TFile *yield_dr_pp_f = TFile::Open(path+"Jet_Shapes_kurt_pp.root");
-//		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_combined.root");
-//		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_for_pp_and_stat_err.root");
-		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_final.root");
-		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_final.root");
-
 		void changeErr(TH1D* h , TH1D* err){
 				for(int k=1; k<h->GetNbinsX()+1;++k){
 						//						cout<<err->GetBinContent(k)<<endl;

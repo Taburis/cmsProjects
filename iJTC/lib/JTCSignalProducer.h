@@ -18,6 +18,12 @@ const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.
 ////		return par[0]+pow(x[0],2)*par[1];
 //}
 
+Double_t mix_pol1(Double_t *x, Double_t *par){
+		if(x[0] < 0.5 && x[0] > -0.5) return par[0];
+		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+}
+
 class JTCSignalProducer :public signalFactoryBase {
 		public :
 				JTCSignalProducer() : signalFactoryBase() {};
@@ -27,10 +33,11 @@ class JTCSignalProducer :public signalFactoryBase {
 				~JTCSignalProducer();
 				TH2D* getSignal(TString name, bool doSeagullCorr = 0);
 				void pullSeagull();
+				void doBkgSubtraction(TString name, float sideMin = 1.5, float sideMax = 2.5);
 				void read(TFile *f, TString name);
 				void read1D(TFile *f, TString name);
-				TH1* projX(bool doRebin, TH2D* h, float x, float y); // for general projection 
-				TH1* projY(bool doRebin, TH2D* h, float x, float y); // for general projection 
+				TH1* projX(bool doRebin, TH2D* h, float x, float y, TString opt=""); // for general projection 
+				TH1* projY(bool doRebin, TH2D* h, float x, float y, TString opt=""); // for general projection 
 				TH1* signal_X(bool doRebin=1){ return projX( doRebin, sig, -1, 1);}
 				TH1* raw_X(bool doRebin=1){ return projX( doRebin, raw_sig, -1, 1);}
 				TH1D* doDrIntegral(TString name);
@@ -38,7 +45,10 @@ class JTCSignalProducer :public signalFactoryBase {
 				void WriteTH1();
 				void getAllProj(TString name, bool rebin = 1);
 				void drawBkgCheck(bool doX = 1);
+				void drawSliceSideBand(TString name);
 				void drawSideBandCheck();
+				TH1D* getSignal_phiSideBand(TString name);
+				TH1D* getSignal_dEta(TString name);
 				void histStyle(TH1* h);
 				void gausFit();
 				float getBkgError();
@@ -49,7 +59,7 @@ class JTCSignalProducer :public signalFactoryBase {
 				// 1: get the raw_sig by skiming
 				// 2: correct the raw_sig by the mixing table
 				// 3: subtract the bkg to get the sig
-				float sidebandmin=1.2 , sidebandmax=1.8;
+				float sidebandmin=1.4 , sidebandmax=1.8;
 				//float sidebandmin=-TMath::Pi()/2 , sidebandmax=-1.2;
 				bool doSideBandMixing = 0;
 				TH2D* raw_sig =0;
@@ -68,15 +78,15 @@ class JTCSignalProducer :public signalFactoryBase {
 };
 
 void JTCSignalProducer::pullSeagull(){
-		//TF1 *func = new TF1("func", mix_pol2, -3, 3, 3);
-		TF1 *func = new TF1("func", "pol2", -2.5, 2.5);
-		int n1 = sig->GetYaxis()->FindBin(1.2);
+		TF1 *func = new TF1("func", mix_pol1, -3, 3, 4);
+	//	TF1 *func = new TF1("func", "pol2", -2.5, 2.5);
+		int n1 = sig->GetYaxis()->FindBin(1.4);
 		int n2 = sig->GetYaxis()->FindBin(1.799);
 		TH1D *htm = (TH1D*) sig->ProjectionX("side_for_fitting", n1, n2); 
 		htm->Scale(1.0/(n2-n1));
 		htm->Rebin(4); htm->Scale(0.25);
 //		TH1D *htm1=(TProfile*)invariantRebin((TH1*)htm, "tet_fitted", 21, etabin);
-		htm->Fit(func, "0", "", -2.5, 2.499);
+		htm->Fit(func, "", "", -2.5, 2.499);
 		float mean = func->GetParameter(0);
 		//htm1->Fit(func);
 		auto line = new TLine(); line->DrawLine(-3, mean, 3, mean);
@@ -95,17 +105,28 @@ void JTCSignalProducer::pullSeagull(){
 //		return 0;
 }
 
+void JTCSignalProducer::doBkgSubtraction(TString name, float sideMin, float sideMax){
+		bkg = (TH2D*) getV2Bkg(sig,sideMin , sideMax );
+		bkg->SetName("bkg_"+name);
+		sig->Add(sig, bkg, 1, -1);
+		return;
+}
+
 TH2D* JTCSignalProducer::getSignal(TString name, bool doSeagullCorr){
 	//	cout<<mix->GetName()<<endl;
 	//	cout<<raw_sig->GetName()<<endl;
 		raw_sig=(TH2D*) raw_sig->Clone("raw_"+name);
+		raw_sig->Scale(1.0/raw_sig->GetXaxis()->GetBinWidth(1)/raw_sig->GetYaxis()->GetBinWidth(1)); //make the h2 invariant
 		//	mix->SetName("mixing_"+name);
 		sig = (TH2D*) raw_sig->Clone("signal_"+name);
 		sig->GetXaxis()->SetTitle("d#eta");
 		sig->GetYaxis()->SetTitle("d#phi");
 		sig->GetXaxis()->CenterTitle();
 		sig->GetYaxis()->CenterTitle();
-		sig->Scale(1.0/sig->GetXaxis()->GetBinWidth(1)/sig->GetYaxis()->GetBinWidth(1)); //make the h2 invariant
+		if(mix == 0) {
+				cout<<"no mixing table has been assigned!"<<endl;
+				return 0;
+		}
 		if(doSideBandMixing) {
 				mix_normalized= sideBandMixingTableMaker(sig, sidebandmin, sidebandmax);
 				//mix_normalized->SetName("sideBand_mixing_"+name);
@@ -155,9 +176,9 @@ void JTCSignalProducer::read(TFile *f , TString name){
 		sig_step2=(TH2D*) f->Get(tmp);
 }
 
-TH1* JTCSignalProducer::projX(bool doRebin, TH2D*h2, float x, float y){
+TH1* JTCSignalProducer::projX(bool doRebin, TH2D*h2, float x, float y, TString opt){
 		// here h2 needs to be invariant 
-		TH1* h=projectionX(h2, x, y);
+		TH1* h=projectionX(h2, x, y, opt);
 		h->Scale(h2->GetYaxis()->GetBinWidth(1));  
 		if(doRebin){
 				TString name = h->GetName();
@@ -169,9 +190,9 @@ TH1* JTCSignalProducer::projX(bool doRebin, TH2D*h2, float x, float y){
 		return h;
 }
 
-TH1* JTCSignalProducer::projY(bool doRebin, TH2D*h2, float x, float y){
+TH1* JTCSignalProducer::projY(bool doRebin, TH2D*h2, float x, float y, TString opt){
 		// here h2 needs to be invariant 
-		TH1* h=projectionY(h2, x, y);
+		TH1* h=projectionY(h2, x, y, opt);
 		h->Scale(h2->GetXaxis()->GetBinWidth(1));  
 		if(doRebin){
 				TString name = h->GetName();
@@ -186,25 +207,25 @@ TH1* JTCSignalProducer::projY(bool doRebin, TH2D*h2, float x, float y){
 void JTCSignalProducer::getAllProj(TString name, bool rebin){
 		TString tmp;
 		tmp = "signal_deta_"+name;
-		sig_deta = (TH1D*) projX(rebin, sig, -1, 1); sig_deta->SetName(tmp);
+		sig_deta = (TH1D*) projX(rebin, sig, -1, 1, "e"); sig_deta->SetName(tmp);
 		tmp = "signal_dphi_"+name;
-		sig_dphi = (TH1D*) projY(rebin, sig, -1, 1); sig_dphi->SetName(tmp);
+		sig_dphi = (TH1D*) projY(rebin, sig, -1, 1, "e"); sig_dphi->SetName(tmp);
 
 		tmp = "sig_step2_deta_"+name;
-		sig_step2_deta = (TH1D*) projX(rebin, sig_step2, -1, 1); sig_step2_deta->SetName(tmp);
+		sig_step2_deta = (TH1D*) projX(rebin, sig_step2, -1, 1, "e"); sig_step2_deta->SetName(tmp);
 		tmp = "sig_step2_dphi_"+name;
-		sig_step2_dphi = (TH1D*) projY(rebin, sig_step2, -1, 1); sig_step2_dphi->SetName(tmp);
+		sig_step2_dphi = (TH1D*) projY(rebin, sig_step2, -1, 1, "e"); sig_step2_dphi->SetName(tmp);
 
 		tmp = "bkg_deta_"+name;
-		bkg_deta = (TH1D*) projX(rebin, bkg, -1, 1); bkg_deta->SetName(tmp);
+		bkg_deta = (TH1D*) projX(rebin, bkg, -1, 1, "e"); bkg_deta->SetName(tmp);
 		tmp = "bkg_dphi_"+name;
-		bkg_dphi = (TH1D*) projY(rebin, bkg, -1, 1); bkg_dphi->SetName(tmp);
+		bkg_dphi = (TH1D*) projY(rebin, bkg, -1, 1, "e"); bkg_dphi->SetName(tmp);
 
 		tmp = "side_deta_"+name;
-		side_deta = (TH1D*) projX(rebin, sig, sidebandmin, sidebandmax); side_deta->SetName(tmp);
+		side_deta = (TH1D*) projX(rebin, sig, sidebandmin, sidebandmax, "e"); side_deta->SetName(tmp);
 
 		tmp = "side_deta_mix_"+name;
-		side_deta_mix = (TH1D*) projX(rebin, mix_normalized, 1.2, 2.2); side_deta_mix->SetName(tmp);
+		side_deta_mix = (TH1D*) projX(rebin, mix_normalized, 1.2, 2.2, "e"); side_deta_mix->SetName(tmp);
 
 		tmp = name;
 		dr_integral = doDrIntegral(tmp); 
@@ -212,9 +233,10 @@ void JTCSignalProducer::getAllProj(TString name, bool rebin){
 
 
 void JTCSignalProducer::WriteTH1(){
-		sig_deta->Write(); sig_step2_deta->Write(); bkg_deta->Write();
-		sig_dphi->Write(); sig_step2_dphi->Write(); bkg_dphi->Write();
-		side_deta->Write();
+		sig_deta->Write(); sig_dphi->Write(); 
+		sig_step2_deta->Write(); sig_step2_dphi->Write(); 
+	   	bkg_deta->Write(); bkg_dphi->Write();
+		side_deta->Write();	
 		side_deta_mix->Write();
 		dr_integral->Write();
 }
@@ -231,7 +253,7 @@ void JTCSignalProducer::read1D(TFile *f , TString name){
 		tmp = "bkg_deta_"+name; bkg_deta=(TH1D*) f->Get(tmp);
 		tmp = "bkg_dphi_"+name; bkg_dphi=(TH1D*) f->Get(tmp);
 
-		tmp = "side_deta_"+name; side_deta=(TH1D*) f->Get(tmp);
+   		tmp = "side_deta_"+name; side_deta=(TH1D*) f->Get(tmp);
 		tmp = "side_deta_mix_"+name; side_deta_mix=(TH1D*) f->Get(tmp);
 }
 
@@ -276,6 +298,35 @@ void JTCSignalProducer::drawSideBandCheck(){
 		h2->SetAxisRange(-2.5, 2.499, "X");
 		h2->Draw("same");
 		h1->Draw("same");
+}
+
+void JTCSignalProducer::drawSliceSideBand(TString name){
+		cout<<"drawing slice sideband ... "<<endl;
+	TH1D* h[3];
+	TString tmp = "side_deta1_"+name;
+	h[0] = (TH1D*) projX(1, sig, 1.2, 1.4, "e"); h[0]->SetName(tmp);
+	cout<<sig->GetName()<<endl;
+	cout<<h[0]->GetName()<<endl;
+	tmp = "side_deta2_"+name;
+	h[1] = (TH1D*) projX(1, sig, 1.4, 1.6, "e"); h[1]->SetName(tmp);
+	tmp = "side_deta3_"+name;
+	h[2] = (TH1D*) projX(1, sig, 1.6, 1.8, "e"); h[2]->SetName(tmp);
+	h[0]->SetLineColor(kAzure+7);
+	h[1]->SetLineColor(kGreen+3);
+	h[2]->SetLineColor(kOrange+7);
+	h[0]->SetMarkerColor(kAzure+7);
+	h[1]->SetMarkerColor(kGreen+3);
+	h[2]->SetMarkerColor(kOrange+7);
+	float mean = h[0]->GetBinContent(h[0]->FindBin(0));
+	float dvt =  h[0]->GetBinError(h[0]->FindBin(0));
+	h[0]->SetAxisRange(mean-10*dvt, mean+10*dvt, "Y");
+	h[0]->SetAxisRange(-2.5, 2.499, "X");
+	for(int i=0; i<3; ++i){
+		histStyle(h[i]);
+		h[i]->SetLineWidth(1);
+		h[i]->Draw("same");
+	}
+		cout<<"finish drawing "<<endl;
 }
 
 void JTCSignalProducer::gausFit(){
@@ -326,6 +377,18 @@ TH1D* JTCSignalProducer::getDrBkgErr(){
 				bkg->SetBinContent(k, 1);
 		}
 		return bkg;
+}
+
+TH1D* JTCSignalProducer::getSignal_phiSideBand(TString name){
+		TString tmp = "side_deta_"+name;
+		side_deta = (TH1D*) projX(1, sig, sidebandmin, sidebandmax, "e"); side_deta->SetName(tmp);
+		return side_deta;
+}
+
+TH1D* JTCSignalProducer::getSignal_dEta(TString name){
+		TString tmp = "signal_deta_"+name;
+		sig_deta = (TH1D*) projX(1, sig, -1, 1, "e"); sig_deta->SetName(tmp);
+		return sig_deta;
 }
 
 JTCSignalProducer::~JTCSignalProducer(){

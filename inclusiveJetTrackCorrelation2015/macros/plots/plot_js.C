@@ -85,7 +85,13 @@ void plot_js(){
 
 
 
-
+	auto wf = new TFile("~/cmsProjects/iJTC/dataSet/inclJTC/nominalJSRatio.root","recreate");
+	wf->cd();
+	sub_ratio2[0][4]->Write();
+	for(int j=0; j<4; ++j){
+			sub_ratio2[0][j]->Write();
+	}
+	wf->Close();
 		for(int i=0; i<3; ++i){
 				for(int j=0; j<4; ++j){
 				//cout<<i<<", "<<j<<endl;

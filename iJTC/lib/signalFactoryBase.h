@@ -29,8 +29,12 @@ class signalFactoryBase {
 				void  doDrPhaseCorrection(TH2D* signal, TH1D* drDist);
 				TH1* invariantRebin(TH1* h, TString name , int n, const Double_t * bins);
 				TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax);
-				TH1* projectionX(TH2D* h, float x, float y);
-				TH1* projectionY(TH2D* h, float x, float y);
+				TH1* projectionX(TH2D* h, float x, float y, TString opt="");
+				TH1* projectionY(TH2D* h, float x, float y, TString opt="");
+				void averageTH1(TH1* h, int n);
+				TH1* meanProjectionX(TH2D* h, float x, float y);
+				TH1* meanProjectionY(TH2D* h, float x, float y);
+				void makeInvariant(TH2D*);
 
 		public : 
 				float midLeft = -0.15;
@@ -39,19 +43,20 @@ class signalFactoryBase {
 				TH1D* hgeo = NULL;
 };
 
-TH1* signalFactoryBase::projectionX(TH2D* h, float x, float y){
+TH1* signalFactoryBase::projectionX(TH2D* h, float x, float y, TString opt){
 		int xbin = h->GetYaxis()->FindBin(x);
 		int ybin = h->GetYaxis()->FindBin(y);
 		ybin = h->GetYaxis()->FindBin(y-h->GetYaxis()->GetBinWidth(ybin));
 		TString name = h->GetName(); name = "projX_"+name;
-		return h->ProjectionX(name, xbin, ybin );
+		return h->ProjectionX(name, xbin, ybin , opt);
 }
 
-TH1* signalFactoryBase::projectionY(TH2D* h, float x, float y){
+TH1* signalFactoryBase::projectionY(TH2D* h, float x, float y, TString opt){
 		int xbin = h->GetXaxis()->FindBin(x);
 		int ybin = h->GetXaxis()->FindBin(y)-1;
+		ybin = h->GetXaxis()->FindBin(y-h->GetXaxis()->GetBinWidth(ybin));
 		TString name = h->GetName(); name = "projY_"+name;
-		return h->ProjectionY(name, xbin, ybin );
+		return h->ProjectionY(name, xbin, ybin ,opt);
 }
 
 TH2D* signalFactoryBase::mixingTableMaker(TH2D* mix, bool doSmooth){
@@ -152,6 +157,7 @@ TH2D* signalFactoryBase::signalMaker(TH2D* signalH2, TH2D* meH2, float sideMin, 
 }
 
 void signalFactoryBase::drIntegral(TH2D* signal, TH1D* drDist, bool isStatError){
+		// this should return the invariant dr distribution (dr bin width will be divided out ) 
 		float content;
 		float error;
 		float width;
@@ -190,6 +196,7 @@ void signalFactoryBase::drIntegral(TH2D* signal, TH1D* drDist, bool isStatError)
 						}
 				}
 		}
+		// make the histogram invariant 
 		for(int i=1; i<drDist->GetNbinsX()+1;i++){
 				content = drDist->GetBinContent(i);
 				error= drDist->GetBinError(i);
@@ -352,4 +359,34 @@ TH2D* signalFactoryBase::sideBandMixingTableMaker(TH2D* h2, float sidemin, float
 		return ME;
 }
 
+void signalFactoryBase::averageTH1(TH1* h, int nbin){
+		h->Scale(1.0/nbin); float nn = pow(nbin,0.5);
+		for(int i=1; i<h->GetNbinsX()+1; ++i){
+				h->SetBinError(i, h->GetBinError(i)*nn);
+		}
+}
+
+TH1* signalFactoryBase::meanProjectionX(TH2D* h, float x, float y){
+		int xbin = h->GetYaxis()->FindBin(x);
+		int ybin = h->GetYaxis()->FindBin(y);
+		ybin = h->GetYaxis()->FindBin(y-h->GetYaxis()->GetBinWidth(ybin));
+		TString name = h->GetName(); name = "meanProjX_"+name;
+		TH1D* hh = h->ProjectionX(name, xbin, ybin , "e");
+		averageTH1(hh, ybin-xbin+1);
+		return hh;
+}
+
+TH1* signalFactoryBase::meanProjectionY(TH2D* h, float x, float y){
+		int xbin = h->GetXaxis()->FindBin(x);
+		int ybin = h->GetXaxis()->FindBin(y)-1;
+		ybin = h->GetXaxis()->FindBin(y-h->GetXaxis()->GetBinWidth(ybin));
+		TString name = h->GetName(); name = "meanProjY_"+name;
+		TH1D* hh = h->ProjectionY(name, xbin, ybin , "e");
+		averageTH1(hh, ybin-xbin+1);
+		return hh;
+}
+
+void signalFactoryBase::makeInvariant(TH2D* h){
+		h->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1)); //make the h2 invariant
+}
 #endif
