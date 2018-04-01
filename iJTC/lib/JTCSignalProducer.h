@@ -5,7 +5,7 @@
 #include "signalFactoryBase.h"
 #endif
 
-const Double_t etabin[22] ={-3, -2.5,-2.,-1.5, -1., -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 1.5,2.,2.5, 3};
+const Double_t etabin[24] ={-3.5, -3, -2.5,-2.,-1.5, -1., -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 1.5,2.,2.5, 3, 3.5};
 const Double_t phibin[18] ={-1.50796, -1.00531,-0.879646, -.75398, -0.628319,-0.502655, -0.376991, -0.251327, -0.125664, 0.125664, 0.251327, 0.376991, 0.502655, 0.628319,.75398, 0.879646, 1.00531,1.50796};
 const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1., 1.2};
 
@@ -20,8 +20,10 @@ const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.
 
 Double_t mix_pol1(Double_t *x, Double_t *par){
 		if(x[0] < 0.5 && x[0] > -0.5) return par[0];
-		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
-		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+	//	else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+	//	else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+		else if( x[0]<-0.5 ) return par[0]+par[1]*pow(x[0]+0.5,2);
+		else return par[1]*(x[0]-0.5)+par[0]+par[1]*pow(x[0]-0.5,2);
 }
 
 class JTCSignalProducer :public signalFactoryBase {
@@ -78,7 +80,7 @@ class JTCSignalProducer :public signalFactoryBase {
 };
 
 void JTCSignalProducer::pullSeagull(){
-		TF1 *func = new TF1("func", mix_pol1, -3, 3, 4);
+		TF1 *func = new TF1("func", mix_pol1, -3, 3, 2);
 	//	TF1 *func = new TF1("func", "pol2", -2.5, 2.5);
 		int n1 = sig->GetYaxis()->FindBin(1.4);
 		int n2 = sig->GetYaxis()->FindBin(1.799);
@@ -184,7 +186,7 @@ TH1* JTCSignalProducer::projX(bool doRebin, TH2D*h2, float x, float y, TString o
 				TString name = h->GetName();
 				name = "rebined_"+name;
 				TH1* hh=h;
-				h=invariantRebin(h,name, 21, etabin);
+				h=invariantRebin(h,name, 23, etabin);
 				delete hh;
 		}
 		return h;

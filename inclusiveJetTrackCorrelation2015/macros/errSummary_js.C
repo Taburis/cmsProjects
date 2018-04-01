@@ -40,7 +40,6 @@ void errSummary_js(){
 						pb_dr_err[i][j]->rela_err= rela_err_pb;	
 						pb_dr_err[i][j]->getAllError(py_dr_syst_err[0][i][j],py_dr_syst_err[4][i][j], py_dr_syst_err[3][i][j], 1);
 						cpb_dr->addError(pb_dr_err[i][j],i+1, 5-j);
-
 				}
 		}
 		cpb_dr->drawSummary(0, 0.99);

@@ -7,6 +7,16 @@ using namespace plottingInput;
 
 TString cent_lab[4] = {"0-10%", "10-30%", "30-50%", "50-100%"};
 float rbin[16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,.985, .99 };
+const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1., 1.2};
+//only for check
+TH1D* changeBin(TString name, TH1D* href){
+		TH1D* h=new TH1D(name, "", 14, drbin);
+		for(int i =1; i<15; ++i){
+				h->SetBinContent(i, href->GetBinContent(i));
+				h->SetBinError(i, href->GetBinError(i));
+		}
+		return h;
+}
 
 TH1D* auxi_hist(TH1D* hh){
 		TString name = hh->GetName();
@@ -85,12 +95,18 @@ void plot_js(){
 
 
 
-	auto wf = new TFile("~/cmsProjects/iJTC/dataSet/inclJTC/nominalJSRatio.root","recreate");
+	auto wf = new TFile("~/cmsProjects/iJTC/dataSet/inclJTC/nominalJSref.root","recreate");
+	TH1D* js_sub[3][5];
 	wf->cd();
-	sub_ratio2[0][4]->Write();
-	for(int j=0; j<4; ++j){
-			sub_ratio2[0][j]->Write();
+	for(int i=0; i<3; ++i){
+			js_sub[i][4] = changeBin(Form("Rho_pp_%d",i), sub_ratio2[i][4]);
+			js_sub[i][4]->Write();
+			for(int j=0; j<4; ++j){
+					js_sub[i][j] = changeBin(Form("Rho_pb_%d_%d",i,j), sub_ratio2[i][j]);
+					js_sub[i][j]->Write();
+			}
 	}
+
 	wf->Close();
 		for(int i=0; i<3; ++i){
 				for(int j=0; j<4; ++j){

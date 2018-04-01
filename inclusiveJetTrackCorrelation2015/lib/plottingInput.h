@@ -58,17 +58,19 @@ namespace plottingInput{
 	//	TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_noJff.root");
 		//TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffNotruncated.root");
 		//TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffNotruncated.root");
-//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_JFF0p5Truncated.root");
-//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_JFF0p5Truncated.root");
 //		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
 //		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_combined.root");
 //		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_for_pp_and_stat_err.root");
-		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
-		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_test.root");
+//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_noCorr.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_noCorr.root");
+//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_JFF0p5Truncated.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_JFF0p5Truncated.root");
+//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffNominalScheme.root");
+//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_jffNominalScheme.root");
 
 // paper setting
-//		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_fixErr.root");
-//		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_kurt_pp.root");
+		TFile *js_dr_pb_f = TFile::Open(path+"Jet_Shapes_pTweighted_fixErr.root");
+		TFile *js_dr_pp_f = TFile::Open(path+"Jet_Shapes_pTweighted_kurt_pp.root");
 		TFile *yield_proj_pb_f = TFile::Open(path+"Particle_Yields_final.root");
 		TFile *yield_proj_pp_f = TFile::Open(path+"Particle_Yields_final.root");
 		TFile *yield_dr_pb_f = TFile::Open(path+"Jet_Shapes_fixErr.root");

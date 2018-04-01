@@ -40,7 +40,7 @@ namespace kurt_reg{
 		TH2D* RecRec_MC_pb_sig[9][5];
 		TH2D* RecRec_MC_pb_mix[9][5];
 
-		TH2D* hjet[5];
+		TH1D* hjet[5];
 		TH2D* mix[9][5];
 		TH2D* sig[9][5];
 
