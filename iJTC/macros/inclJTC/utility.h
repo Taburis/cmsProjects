@@ -16,6 +16,8 @@ TString track_label[] = {"0.7 < p_{T}^{track} < 1 GeV","1 < p_{T}^{track} < 2 Ge
 		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
 		"12 < p_{T}^{track} < 16 GeV", "16 < p_{T}^{track} < 20 GeV", "p_{T}^{track} > 20 GeV"};
 TString cent_label[] = {"Cent. 0-10%", "Cent. 10-30%", "Cent. 30-50%","Cent. 50-100%"};
+
+Color_t color_vec[6] = {kBlue, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack};
 //		"12 < p_{T}^{track} < 16 GeV", "p_{T}^{track} > 16 Gev"};
 void clean_input(){
 		for(int i=0; i<9; ++i){
@@ -30,6 +32,99 @@ void clean_input(){
 						delete raw_sig[i][j];
 						delete raw_sig_pTweighted[i][j];
 						delete mixing[i][j];
+				}
+		}
+}
+
+void batch_operation(TString name,TH1D* h[9][4], TH1D* h1[9][4], TH1D* h2[9][4],  TString opt, bool ispp){
+		cout<<"oprating on "<<name<<"..."<<endl;
+		int ncent = ispp ? 1 : 4;
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<ncent; ++j){
+						h[i][j]=(TH1D*) h1[i][j]->Clone(name + Form("_%d_%d",i,j));
+						if(opt == "ratio") 
+								h[i][j]->Divide(h2[i][j]);
+						else if( opt== "add") 
+								h[i][j]->Add(h2[i][j]);
+						else if( opt== "multiply") 
+								h[i][j]->Multiply(h2[i][j]);
+						else if( opt== "diff") {
+								h[i][j]->Add(h2[i][j], -1);
+						}
+						else if( opt== "binomialRatio") {
+								h[i][j]->Divide(h[i][j], h2[i][j], 1, 1, "B");
+						}
+						else cout<<"no defined operation: "<<opt<<endl;
+				}
+		}
+}
+
+void batch_operation2(TString name,TH1D* h[9][4], TH1D* h1[9][4], TH1D* h2[9][4],  TString opt){
+		cout<<"oprating on "<<name<<"..."<<endl;
+		int ncent = 4;//ispp ? 1 : 4;
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<ncent; ++j){
+						h[i][j]=(TH1D*) h1[i][j]->Clone(name + Form("_%d_%d",i,j));
+						if(opt == "ratio") 
+								h[i][j]->Divide(h2[i][0]);
+						else if( opt== "add") 
+								h[i][j]->Add(h2[i][0]);
+						else if( opt== "multiply") 
+								h[i][j]->Multiply(h2[i][0]);
+						else if( opt== "diff") {
+								h[i][j]->Add(h2[i][0], -1);
+						}
+						else if( opt== "binomialRatio") {
+								h[i][j]->Divide(h[i][j], h2[i][0], 1, 1, "B");
+						}
+						else cout<<"no defined operation: "<<opt<<endl;
+				}
+		}
+}
+
+void batch_operation2D(TString name,TH2D* h[9][4], TH2D* h1[9][4], TH2D* h2[9][4],  TString opt, bool ispp){
+		cout<<"oprating on "<<name<<"..."<<endl;
+		int ncent = ispp ? 1 : 4;
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<ncent; ++j){
+						h[i][j]=(TH2D*) h1[i][j]->Clone(name + Form("_%d_%d",i,j));
+						if(opt == "ratio") 
+								h[i][j]->Divide(h2[i][j]);
+						else if( opt== "add") 
+								h[i][j]->Add(h2[i][j]);
+						else if( opt== "multiply") 
+								h[i][j]->Multiply(h2[i][j]);
+						else if( opt== "diff") {
+								h[i][j]->Add(h2[i][j], -1);
+						}
+						else if( opt== "binomialRatio") {
+								h[i][j]->Divide(h[i][j], h2[i][j], 1, 1, "B");
+						}
+						else cout<<"no defined operation: "<<opt<<endl;
+				}
+		}
+}
+
+void batch_dump(TString name, TString fname, bool ispp, TH1D* h1[9][4]){
+		int ncent = ispp ? 1 : 4;
+		auto wf = new TFile(dataDumpPath+fname+".root", "recreate");
+		wf->cd();
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<ncent; ++j){
+						h1[i][j]->SetName(name+Form("_%d_%d", i, j));
+						h1[i][j]->Write();
+				}
+		}
+		wf->Close();
+}
+
+void batch_read1D(TString name, TString fname,  bool ispp, TH1D* h[9][4]){
+	int ncent = ispp ? 1 : 4;
+		TFile *f = new TFile(dataDumpPath +fname+".root");
+		for(int i=0; i<9; ++i){
+				for(int j=0; j<ncent; ++j){
+						h[i][j]=(TH1D*) f->Get(name+Form("_%d_%d",i,j));
+						//				cout<<h[i][j]->GetName()<<endl;
 				}
 		}
 }
@@ -52,17 +147,65 @@ void batchGet2D(TString name,TString name2, TH2D* h[9][4], bool isNumber=0, bool
 				for(int j=0; j<ncent; ++j){
 						if(isNumber) h[i][j]=(TH2D*) f->Get(name+Form("_%d_%d",i,j));
 						else h[i][j]=(TH2D*) f->Get(name+Form("_pTweighted_%d_%d",i,j));
-		//				cout<<h[i][j]->GetName()<<endl;
+						//				cout<<h[i][j]->GetName()<<endl;
 				}
 		}
+}
+
+TH1D** flattenTH1D_94(TH1D* h[9][4] ){
+		TH1D** hh;
+		hh=new TH1D*[36];
+		for(int i=0; i<4; ++i){
+				for(int j=0; j<9; ++j){
+						hh[j+i*9] = h[j][i];
+				}
+		}
+		return hh;
+}
+
+int index_94(int i, int j){
+		return i+j*9;
+}
+
+void showPlot(TString name, bool ispp , float x1, float x2, int n_args, ...){
+		va_list ap;
+		va_start(ap, n_args);
+		int ncol = 3, nrow = 3;
+		if( !ispp ) {ncol= 4; nrow = 9;}
+		auto cm = new mCanvasLoose("c_"+name, "", nrow, ncol);
+		auto tx = new TLatex();  tx->SetTextSize(.08);
+		int ncent = ispp ? 1: 4;
+		TH1D** h;
+		for(int k=0; k<n_args; ++k){
+				h = va_arg(ap, TH1D**);
+				for(int i=0; i<9 ; ++i){
+						for(int j=0; j<ncent; ++j){
+						//		cout<<index_94(i,j)<<endl;
+								h[index_94(i,j)]->SetTitle("");
+								h[index_94(i,j)]->SetLineColor(color_vec[k]);
+								h[index_94(i,j)]->GetXaxis()->SetNdivisions(505);
+								h[index_94(i,j)]->SetAxisRange(x1, x2,"X");
+								if(ispp ) { cm->drawHist(h[index_94(i,j)], i+1);
+										cm->cd(i+1);
+										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
+								}
+								else { cm->drawHist(h[index_94(i,j)], i+1, 4-j);
+										cm->CD(i+1, 4-j);
+										tmp = track_label[i]+" "+cent_label[j];
+										tx->DrawLatexNDC(0.1, 0.93, tmp);
+								}
+						}
+				}
+		}
+		cm->SaveAs(FigDumpPath+name+".gif");
 }
 
 void getSig(TString name, TH2D* h[9][4], bool isNumber=0, bool ispp = 1){
 		batchGet2D("signal_"+name,name, h, isNumber, ispp);
 }
 
-void getRawSig(TString name, TH2D* h[9][4], bool isNumber=0){
-		batchGet2D("sig_mix_corrected_"+name,name, h, isNumber);
+void getRawSig(TString name, TH2D* h[9][4], bool isNumber=0, bool ispp= 1){
+		batchGet2D("sig_mix_corrected_"+name,name, h, isNumber, ispp);
 }
 
 void pullSig(TString fname, float sidemin=1.5, float sidemax=2.5, bool doSeagull=0, bool ispp =1){
@@ -226,7 +369,7 @@ void batch_subtraction(TString name, TString name1, bool ispp1, TString name2, b
 				for(int j=0; j<4; ++j){
 						int k1= ispp1 ? 0 : j;
 						int k2= ispp2 ? 0 : j;
-//						cout<<sig[i][k1]->GetName()<<endl;
+						//						cout<<sig[i][k1]->GetName()<<endl;
 						if(isNumber) corr[i][j]=(TH2D*)sig[i][k1]->Clone("signal_"+name+Form("_%d_%d",i,j));
 						else corr[i][j]=(TH2D*)sig[i][k1]->Clone("signal_"+name+Form("_pTweighted_%d_%d",i,j));
 						corr[i][j]->Add(sub[i][k2],-1);
@@ -258,7 +401,7 @@ void batch_sig_pp_sub_pb(TString name, TString pp, TString pb, bool isNumber){
 		wf->Close();
 }	
 
-mCanvasLoose * show_1D_pp(TString name, TH1D* h[9][4], float x1=0, float x2=-1, bool ispp = 1){
+mCanvasLoose * show_1D_pp(TString name, TH1D* h[9][4], float x1=0, float x2=-1, bool ispp = 1, float y1=0, float y2 = -1){
 		int ncol = 3, nrow = 3;
 		if( !ispp ) {ncol= 4; nrow = 9;}
 		auto cm = new mCanvasLoose("c_"+name, "", nrow, ncol);
@@ -267,13 +410,17 @@ mCanvasLoose * show_1D_pp(TString name, TH1D* h[9][4], float x1=0, float x2=-1, 
 		for(int i=0; i<9 ; ++i){
 				for(int j=0; j<ncent; ++j){
 						h[i][0]->SetTitle("");
-						h[i][0]->GetXaxis()->SetNdivisions(505);
-						if( x1< x2) h[i][0]->SetAxisRange(x1, x2,"X");
 						if(ispp ) { cm->drawHist(h[i][0], i+1);
+								h[i][0]->GetXaxis()->SetNdivisions(505);
+								if( x1< x2) h[i][0]->SetAxisRange(x1, x2,"X");
+								if( y1< y2) h[i][0]->SetAxisRange(y1, y2,"Y");
 								cm->cd(i+1);
 								tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 						}
-						else { cm->drawHist(h[i][0], i+1, 4-j);
+						else { cm->drawHist(h[i][j], i+1, 4-j);
+								h[i][j]->GetXaxis()->SetNdivisions(505);
+								if( x1< x2) h[i][j]->SetAxisRange(x1, x2,"X");
+								if( y1< y2) h[i][j]->SetAxisRange(y1, y2,"Y");
 								cm->CD(i+1, 4-j);
 								tmp = track_label[i]+" "+cent_label[j];
 								tx->DrawLatexNDC(0.1, 0.93, tmp);
@@ -387,16 +534,29 @@ void getdEta(TString name, TH1D* h[9][4], bool isNumber = 0, bool ispp = 1){
 		}
 }
 
-void getDr(TString name, TH1D* h[9][4], bool isNumber = 0, bool ispp = 1){
+void getRawDr(TString name, TH1D* h[9][4], bool isNumber = 0, bool ispp = 1){
 		TH2D* sig[9][4];
 		auto sp = new JTCSignalProducer();
-		getSig(name, sig, isNumber, ispp);
+		getRawSig(name, sig, isNumber, ispp);
 		int ncent = ispp ? 1 : 4;
 		for(int i=0; i<9 ; ++i){
 				for(int j=0;j<ncent ; ++j){
 						sp->sig=sig[i][j];
 						h[i][j]= sp->doDrIntegral(name+Form("_%d_%d",i, j));
-	//						cout<<h[i][j]->GetName()<<endl;
+						//cout<<h[i][j]->GetName()<<endl;
+				}
+		}
+}
+
+void getDr(TString name, TH1D* h[9][4], bool isNumber = 0, bool ispp = 1){
+		TH2D* sig[9][4];
+		auto sp = new JTCSignalProducer();
+		getSig(name, sig, isNumber, ispp);
+		int ncent = ispp ? 1 : 4; for(int i=0; i<9 ; ++i){
+				for(int j=0;j<ncent ; ++j){
+						sp->sig=sig[i][j];
+						h[i][j]= sp->doDrIntegral(name+Form("_%d_%d",i, j));
+						//cout<<h[i][j]->GetName()<<endl;
 				}
 		}
 		//		delete sp;
@@ -471,8 +631,8 @@ void applyCorr(TString name, TString dataname, TString corrname, bool isNumber =
 						for(int k=1; k<corr[i][j]->GetNbinsX()+1; ++k){
 								for(int l=1; l<corr[i][j]->GetNbinsY()+1; ++l){
 										if(calDr(k,l, corr[i][j] ) >drCut ) {
-										corr[i][j]->SetBinContent(k,l,0);	
-										corr[i][j]->SetBinError(k,l,0);	
+												corr[i][j]->SetBinContent(k,l,0);	
+												corr[i][j]->SetBinError(k,l,0);	
 										}
 								}
 						}
@@ -535,12 +695,12 @@ void JSRatio(TString name, TString ppname, TString pbname){
 }
 
 TH1D* sumPt(TString name ,TH1D* h[9][4], TH1D* sum, int j=0){
-	sum=(TH1D*) h[0][j]->Clone(name);
-	for(int i=1; i<9; ++i){
-		sum->Add(h[i][j]);
-		cout<<"summing "<<h[i][j]->GetName()<<endl;
-	}
-	return sum;
+		sum=(TH1D*) h[0][j]->Clone(name);
+		for(int i=1; i<9; ++i){
+				sum->Add(h[i][j]);
+				cout<<"summing "<<h[i][j]->GetName()<<endl;
+		}
+		return sum;
 }
 
 
@@ -611,7 +771,7 @@ mCanvasLoose * show_1D_pp_pb_overlay(TString name, TH1D* h[9][4], TH1D* h2[9][4]
 		auto tx = new TLatex();  tx->SetTextSize(.08);
 		for(int i=0; i<9 ; ++i){
 				for(int j=0; j<4 ; ++j){
-//						cout<<i<<", "<<j<<endl;
+						//						cout<<i<<", "<<j<<endl;
 						h[i][0]->SetTitle("");
 						h[i][0]->GetXaxis()->SetNdivisions(505);
 						float ymin = min(h2[i][j]->GetMinimum(), h[i][0]->GetMinimum());
@@ -623,11 +783,11 @@ mCanvasLoose * show_1D_pp_pb_overlay(TString name, TH1D* h[9][4], TH1D* h2[9][4]
 						cm->drawHist(h[i][0], i+1, 4-j);
 						cm->drawHist(h2[i][j], i+1, 4-j);
 						cm->CD(i+1, 4-j);
-//						gPad->SetLogy();
+						//						gPad->SetLogy();
 						tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 				}
 		}
-//		auto tl = new TLegend(0.6, 0.6, 0.95, 0.87); tl->SetLineColor(0);
+		//		auto tl = new TLegend(0.6, 0.6, 0.95, 0.87); tl->SetLineColor(0);
 		auto tl = new TLegend(0.6, 0.2, 0.95, 0.5); tl->SetLineColor(0);
 		//auto tl = new TLegend(0.6, 0.6, 0.95, 0.87); tl->SetLineColor(0);
 		tl->AddEntry(h[0][0], lab1);
@@ -646,11 +806,11 @@ void show_1D_pp_pb_overlayRatio(TString name, TH1D* h[9][4], TH1D* h2[9][4], TSt
 						float ymin = min(h2[i][j]->GetMinimum(), h[i][0]->GetMinimum());
 						float ymax = max(h2[i][j]->GetMaximum(), h[i][0]->GetMaximum());
 						float range = ymax-ymin;
-//						cout<<i<<", "<<j<<endl;
+						//						cout<<i<<", "<<j<<endl;
 						ratio[i][j]=(TH1D*) h2[i][j]->Clone(name+Form("ratio_%d_%d",i,j));
 						ratio[i][j]->Divide(h[i][0]);
 						ratio[i][j]->SetAxisRange(x1, x2, "X");
-//						ratio[i][j]->SetAxisRange(0, 5, "Y");
+						//						ratio[i][j]->SetAxisRange(0, 5, "Y");
 						h[i][0]->SetTitle("");
 						h[i][0]->GetXaxis()->SetNdivisions(505);
 						h[i][0]->SetAxisRange(ymin-0.05*range, ymax+0.05*range, "Y");
@@ -660,13 +820,13 @@ void show_1D_pp_pb_overlayRatio(TString name, TH1D* h[9][4], TH1D* h2[9][4], TSt
 						cm->addHist(h2[i][j], i+1, 4-j);
 						cm->addHist(ratio[i][j], i+1, 4-j, 1);
 						cm->CD(i+1, 4-j, 0);
-//						gPad->SetLogy();
+						//						gPad->SetLogy();
 						tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 						cm->CD(i+1, 4-j, 1);
 						tx->DrawLatexNDC(0.2, 0.9, lab2+" / "+lab1);
 				}
 		}
-//		auto tl = new TLegend(0.6, 0.6, 0.95, 0.87); tl->SetLineColor(0);
+		//		auto tl = new TLegend(0.6, 0.6, 0.95, 0.87); tl->SetLineColor(0);
 		auto tl = new TLegend(0.6, 0.2, 0.95, 0.5); tl->SetLineColor(0);
 		//auto tl = new TLegend(0.6, 0.6, 0.95, 0.87); tl->SetLineColor(0);
 		tl->AddEntry(h[0][0], lab1);
@@ -711,3 +871,88 @@ void mixTables(TString name, TString name1, TString name2, bool ispp=1){
 		wf->Close();
 }
 
+void fig5Stack(TString name, TH1D* h[3][4], bool isNumber =0 ){
+		TH1D* dr[9][4];
+		getDr(name, dr, isNumber , 0);		
+		int bin[3] = {0, 2, 5};
+		for(int i=0; i<3; ++i){
+				for(int k=0; k<4; ++k){
+						h[i][k]=(TH1D*) dr[bin[i]][k]->Clone(name+Form("_stacked_%d_%d",i,k));
+						for(int j=bin[i]+1; j<9; ++j){
+								h[i][k]->Add(dr[j][k]);
+						}
+				}
+		}
+}
+
+void addStackLabel(mCanvasLoose* cp){
+		TString label[]={"p_{T}^{track}>0.7", "p_{T}^{track}>2", "p_{T}^{track}>4"};
+		TString cent[]={"Cent. 0-10%", "Cent. 10-30%", "Cent. 30-50%", "Cent. 50-100%"};
+		auto tx = new TLatex();  tx->SetTextSize(.08);
+		for(int j=0; j<4; ++j){
+				cp->CD(1, 4-j);
+				tx->DrawLatexNDC(0.6, 0.8, cent[j]);
+		}
+		for(int j=0; j<3; ++j){
+				cp->CD(j+1, 1);
+				tx->DrawLatexNDC(0.2, 0.8, label[j]);
+		}
+}
+
+void ratioStack(TString name, TString name1, TString name2, bool isNumber = 0 ){
+		TH1D* h1[3][4], *h2[3][4], *ratio[3][4];
+		fig5Stack(name1, h1, isNumber);
+		fig5Stack(name2, h2, isNumber);
+		auto cp = new mCanvasLoose(name+"_st" , "", 3, 4);
+		for(int j=0; j<3; ++j){
+				for(int i=0; i<4; ++i){
+						ratio[j][i]=(TH1D*) h1[j][i]->Clone(Form(name+"_ratio_%d_%d",i , j));
+						ratio[j][i]->Divide(h2[j][i]);
+						cp->drawHist(ratio[j][i], j+1, 4-i);
+						cp->CD(j+1, 4-i);
+						gPad->SetLogy();
+				}
+		}	   
+		cp->SaveAs(FigDumpPath+name+".gif");
+}
+
+void readJSRes(TH1D* pp[9][4], bool ispp = 1){
+		auto reff= new TFile("/Users/tabris/cmsProjects/iJTC/dataSet/inclJTC/nominalJSref.root");
+		for(int i=0; i<9; ++i){
+				pp[i][0]=(TH1D*)reff->Get(Form("JS_pp_%d",i));
+		}
+}
+
+void showPlot2(TString name, bool ispp , float x1, float x2, int n_args, ...){
+		va_list ap;
+		va_start(ap, n_args);
+		int ncol = 3, nrow = 3;
+		if( !ispp ) {ncol= 4; nrow = 4;}
+		auto cm = new mCanvasLoose("c_"+name, "", nrow, ncol);
+		auto tx = new TLatex();  tx->SetTextSize(.08);
+		int ncent = ispp ? 1: 4;
+		TH1D** h;
+		for(int k=0; k<n_args; ++k){
+				h = va_arg(ap, TH1D**);
+				for(int i=5; i<9 ; ++i){
+int ii = i-5;
+						for(int j=0; j<ncent; ++j){
+						//		cout<<index_94(i,j)<<endl;
+								h[index_94(i,j)]->SetTitle("");
+								h[index_94(i,j)]->SetLineColor(color_vec[k]);
+								h[index_94(i,j)]->GetXaxis()->SetNdivisions(505);
+								h[index_94(i,j)]->SetAxisRange(x1, x2,"X");
+								if(ispp ) { cm->drawHist(h[index_94(i,j)], ii+1);
+										cm->cd(i+1);
+										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
+								}
+								else { cm->drawHist(h[index_94(i,j)], ii+1, 4-j);
+										cm->CD(i+1, 4-j);
+										tmp = track_label[i]+" "+cent_label[j];
+										tx->DrawLatexNDC(0.1, 0.93, tmp);
+								}
+						}
+				}
+		}
+		cm->SaveAs(FigDumpPath+name+".gif");
+}

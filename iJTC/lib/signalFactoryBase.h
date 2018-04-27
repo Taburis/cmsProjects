@@ -29,9 +29,11 @@ class signalFactoryBase {
 				void  doDrPhaseCorrection(TH2D* signal, TH1D* drDist);
 				TH1* invariantRebin(TH1* h, TString name , int n, const Double_t * bins);
 				TH2D* sideBandMixingTableMaker(TH2D* h2, float sidemin, float sidemax);
+				TH2D* sideBandBkgMaker(TString name, TH2D* h2, float sidemin, float sidemax);
 				TH1* projectionX(TH2D* h, float x, float y, TString opt="");
 				TH1* projectionY(TH2D* h, float x, float y, TString opt="");
 				void averageTH1(TH1* h, int n);
+				void shiftTH2D(TH2D* h, float x);
 				TH1* meanProjectionX(TH2D* h, float x, float y);
 				TH1* meanProjectionY(TH2D* h, float x, float y);
 				void makeInvariant(TH2D*);
@@ -362,7 +364,7 @@ TH2D* signalFactoryBase::sideBandMixingTableMaker(TH2D* h2, float sidemin, float
 void signalFactoryBase::averageTH1(TH1* h, int nbin){
 		h->Scale(1.0/nbin); float nn = pow(nbin,0.5);
 		for(int i=1; i<h->GetNbinsX()+1; ++i){
-				h->SetBinError(i, h->GetBinError(i)*nn);
+//				h->SetBinError(i, h->GetBinError(i)*nn);
 		}
 }
 
@@ -384,6 +386,28 @@ TH1* signalFactoryBase::meanProjectionY(TH2D* h, float x, float y){
 		TH1D* hh = h->ProjectionY(name, xbin, ybin , "e");
 		averageTH1(hh, ybin-xbin+1);
 		return hh;
+}
+
+TH2D* signalFactoryBase::sideBandBkgMaker(TString name, TH2D* h2, float sidemin, float sidemax){
+		//using the sideband to make the TH2D bkg table
+		TH1* bkgProj = meanProjectionX(h2, sidemin, sidemax-0.001);
+		bkgProj->SetName(name+"_proj");
+		TH2D* bkg = (TH2D*) h2->Clone(name);
+		for(int iy=1; iy<bkg->GetNbinsY()+1; iy++){
+				for(int ix=1; ix<bkg->GetNbinsX()+1; ix++){
+						bkg->SetBinContent(ix, iy, bkgProj->GetBinContent(iy));
+						bkg->SetBinError(ix, iy, bkgProj->GetBinError(iy));
+				}
+		}
+		return bkg;
+}
+
+void signalFactoryBase::shiftTH2D(TH2D* h, float x){
+		for(int iy=1; iy<h->GetNbinsY()+1; iy++){
+				for(int ix=1; ix<h->GetNbinsX()+1; ix++){
+						h->SetBinContent(ix, iy, h->GetBinContent(ix, iy)+x);
+				}
+		}
 }
 
 void signalFactoryBase::makeInvariant(TH2D* h){

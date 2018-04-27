@@ -21,11 +21,13 @@ TString data_pb_f2 = "/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015
 TString data_pb_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/PbPb_Inclusive_Correlations.root";
 
 TString gengen_hydjet_sube0_f = "/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/PbPb_5TeVMC_withMix_GenGen_sube0_CymbalTune_fullCymbalCorrs_inclJetBinning.root";
+TString gengen_hydjet_f = "/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/PbPb_5TeVMC_withMix_GenGen_CymbalTune_fullCymbalCorrs_inclJetBinning.root";
 TString recgen_hydjet_sube0_f = "/Users/tabris/cmsProjects/inclusiveJetTrackCorrelation2015/dataSet/correlation/PbPb_5TeVMC_withMix_RecoGen_sube0_CymbalTune_fullCymbalCorrs_inclJetBinning.root";
 
 TString gengen_hydjet_sube0_nom_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/Hydjet_GenJet_GenTrack_Sube0_Inclusive_Correlations.root";
 TString recgen_hydjet_sube0_nom_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/Hydjet_RecoJet_GenTrack_Sube0_Inclusive_Correlations.root";
 TString recrec_hydjet_nom_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/Hydjet_RecoJet_RecoTrack_Inclusive_Correlations.root";
+TString recgen_hydjet_nom_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/Hydjet_RecoJet_GenTrack_Inclusive_Correlations.root";
 
 TString gengen_hydjet_norm_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/Hydjet_GenJet_GenTrack_Inclusive_Correlations.root";
 TString recgen_hydjet_norm_f = "/Users/tabris/Research/HIN_5.02TeV/JetTrack2016/me_correct/Hydjet_RecoJet_GenTrack_Inclusive_Correlations.root";
@@ -50,7 +52,7 @@ void getSig_hallie(TFile *f, TH2D* h[9][4], TString cap, int ncent = 4 ) {
 
 						h[i][j] = (TH2D*) f->Get(tmp);
 						h[i][j]->Scale(1.0/h[i][j]->GetXaxis()->GetBinWidth(1)/h[i][j]->GetYaxis()->GetBinWidth(1));
-						cout<<h[i][j]->GetName()<<endl;
+						//cout<<h[i][j]->GetName()<<endl;
 				}
 		}
 }
@@ -190,6 +192,63 @@ void get2DInput_Pb(TFile *f, TString cap){
 		}
 }
 
+void get2DInput_PbCombine(TFile *f, TString cap){
+		TString tmp;
+		TString jetname, jetname2;
+		jetname = "_all_jets_corrpT";
+		jetname2= "_hJet";
+		for(int i=0; i<9; ++i){
+				for(int j=0; j<4; ++j){
+						tmp = cap+jetname2+"TrackSignalBackground"+cent_tag[j]+"_"+cent_tag[j+1]\
+							  +"_Pt100_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+						//  cout<<tmp<<endl;
+						raw_sig[i][j] = (TH2D*) f->Get(tmp);
+						tmp = cap+jetname2+"TrackSignalBackground_pTweighted"+cent_tag[j]+"_"+cent_tag[j+1]\
+							  +"_Pt100_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+						raw_sig_pTweighted[i][j] = (TH2D*) f->Get(tmp);
+						tmp = cap+jetname2+"TrackME"+cent_tag[j]+"_"+cent_tag[j+1]\
+							  +"_Pt100_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+						//cout<<tmp<<endl;
+						mixing[i][j] = (TH2D*) f->Get(tmp);
+						//cout<<mixing[i][j]->GetName()<<endl;
+				}
+				int j=4;
+				tmp = cap+jetname2+"TrackSignalBackground"+cent_tag[j]+"_"+cent_tag[j+1]\
+					  +"_Pt100_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+				TH2D* htmp = (TH2D*) f->Get(tmp);
+				cout<<htmp->GetName()<<endl;
+				raw_sig[i][3]->Add(htmp);
+				tmp = cap+jetname2+"TrackSignalBackground_pTweighted"+cent_tag[j]+"_"+cent_tag[j+1]\
+					  +"_Pt100_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+				htmp = (TH2D*) f->Get(tmp);
+				raw_sig_pTweighted[i][3]->Add(htmp);
+				tmp = cap+jetname2+"TrackME"+cent_tag[j]+"_"+cent_tag[j+1]\
+					  +"_Pt100_Pt1000_"+trk_tag[i]+"_"+trk_tag[i+1];
+				h = (TH2D*) f->Get(tmp);
+				mixing[i][3]->Add(htmp);
+		}
+		for(int j=0; j<5; ++j){
+				tmp = cap+jetname+cent_tag[j]+"_"+cent_tag[j+1]\
+					  +"_Pt100_Pt1000";
+				cout<<tmp<<endl;
+				hjet_tmp[j] = (TH1D*) f->Get(tmp);
+				//cout<<hjet_tmp[j]->Integral()<<endl;
+		}
+		hjet_tmp[3]->Add(hjet_tmp[4]);
+		float njet = hjet_tmp[0]->Integral();
+		for(int j=1; j<4; ++j){
+				njet += hjet_tmp[j]->Integral();
+				for(int i=0; i<9; ++i){
+						raw_sig[i][0]->Add(raw_sig[i][j]);
+						raw_sig_pTweighted[i][0]->Add(raw_sig_pTweighted[i][j]);
+				}
+		}
+		for(int i=0; i<9; ++i){
+				raw_sig[i][0]->Scale(1.0/njet);
+				raw_sig_pTweighted[i][0]->Scale(1.0/njet);
+		}
+}
+
 void get2DInput_GenGen_PYTHIA(){
 		TFile *f = TFile::Open(gengen_pythia_f);
 		get2DInput_pp(f, "GenJet_GenTrack");
@@ -199,21 +258,34 @@ void get2DInput_RecGen_PYTHIA(){
 		TFile *f = TFile::Open(recgen_pythia_f);
 		get2DInput_pp(f, "RecoJet_GenTrack");
 }
+
 void get2DInput_RecRec_PYTHIA(){
 		TFile *f = TFile::Open(recrec_pythia_f);
 		get2DInput_pp(f, "RecoJet_RecoTrack");
 }
+
 void get2DInput_pp_data(){
 		TFile *f = TFile::Open(pp_f);
 		get2DInput_pp(f, "Data");
 }
+
 void get2DInput_RecGen_sube0_HYDJET(){
 		TFile *f = TFile::Open(recgen_hydjet_sube0_f);
 		get2DInput_Pb(f, "RecoJet_GenTrack");
 }
+
 void get2DInput_GenGen_sube0_HYDJET(){
 		TFile *f = TFile::Open(gengen_hydjet_sube0_f);
 		get2DInput_Pb(f, "GenJet_GenTrack");
 }
 
+void get2DInput_GenGen_HYDJET(){
+		TFile *f = TFile::Open(gengen_hydjet_f);
+		get2DInput_Pb(f, "GenJet_GenTrack");
+}
+
+void get2DInput_GenGen_sube0_Combined(){
+		TFile *f = TFile::Open(gengen_hydjet_sube0_f);
+		get2DInput_PbCombine(f, "GenJet_GenTrack");
+}
 

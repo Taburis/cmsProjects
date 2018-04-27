@@ -85,7 +85,7 @@ void plot_js(){
 						cout<<i<<", "<<j<<endl;
 						cout<<js_dr    [bin[0]][j]->GetName()<<endl;
 						for(int k=bin[i]+1; k<9; k++){
-//								cout<<js_dr_err[k][j]->GetName()<<endl;
+								//								cout<<js_dr_err[k][j]->GetName()<<endl;
 								sub_ratio [i][j] ->Add(js_dr_err[k][j]);
 								sub_ratio2[i][j] ->Add(js_dr    [k][j]);
 						}
@@ -94,23 +94,42 @@ void plot_js(){
 
 
 
+		auto wf = new TFile("~/cmsProjects/iJTC/dataSet/inclJTC/JS5TeV_HIN_16_020.root","recreate");
+		TH1D* js_sub[3][5], *js_pp[9], *jspb[9][4], *jserrpp[9], *jserrpb[9][4];
+		wf->cd();
+		//	for(int i=0; i<3; ++i){
+		//			js_sub[i][4] = changeBin(Form("Rho_pp_%d",i), sub_ratio2[i][4]);
+		//			js_sub[i][4]->Write();
+		//			for(int j=0; j<4; ++j){
+		//					js_sub[i][j] = changeBin(Form("Rho_pb_%d_%d",i,j), sub_ratio2[i][j]);
+		//					js_sub[i][j]->Write();
+		//			}
+		//	}
+		TString pts[] = {"0.7", "1", "2", "3", "4", "8", "12", "16", "20", "999"};
+		TString cents[] = {"0", "10", "30", "50", "100"};
+		for(int i=0; i<9; ++i){
+				js_pp[i] = changeBin(Form("JS_pp_%d",i), js_dr[i][4]);
+				js_pp[i]->SetTitle(pts[i]+" < pT < "+pts[i+1]);
+				js_pp[i]->Write();
+				jserrpp[i]=changeBin(Form("SystError_pp_%d", i), js_dr_err[i][4]);
+				jserrpp[i]->SetTitle(pts[i]+" < pT < "+pts[i+1]);
+				jserrpp[i]->Write();
+		}
+		for(int i=0; i<9; ++i){
+				for(int j=0; j<4; ++j){
+						jspb[i][j] = changeBin(Form("JS_pb_%d_%d",i, j), js_dr[i][j]);
+						jspb[i][j]->SetTitle(pts[i]+" < pT <"+pts[i+1]+", Cent: "+cents[j]+"-"+cents[j+1]);
+						jspb[i][j]->Write();
+						jserrpb[i][j]=changeBin(Form("SystError_pb_%d_%d", i, j), js_dr_err[i][j]);
+						jserrpb[i][j]->SetTitle(pts[i]+" < pT < "+pts[i+1]+", Cent: "+cents[j]+"-"+cents[j+1]);
+						jserrpb[i][j]->Write();
+				}
+		}
+		wf->Close();
 
-	auto wf = new TFile("~/cmsProjects/iJTC/dataSet/inclJTC/nominalJSref.root","recreate");
-	TH1D* js_sub[3][5];
-	wf->cd();
-	for(int i=0; i<3; ++i){
-			js_sub[i][4] = changeBin(Form("Rho_pp_%d",i), sub_ratio2[i][4]);
-			js_sub[i][4]->Write();
-			for(int j=0; j<4; ++j){
-					js_sub[i][j] = changeBin(Form("Rho_pb_%d_%d",i,j), sub_ratio2[i][j]);
-					js_sub[i][j]->Write();
-			}
-	}
-
-	wf->Close();
 		for(int i=0; i<3; ++i){
 				for(int j=0; j<4; ++j){
-				//cout<<i<<", "<<j<<endl;
+						//cout<<i<<", "<<j<<endl;
 						sub_ratio [i][j]->Divide(sub_ratio [i][4]);
 						sub_ratio2[i][j]->Divide(sub_ratio2[i][4]);
 						sub_ratio2[i][j]->SetAxisRange(0, .99, "X");

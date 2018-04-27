@@ -18,12 +18,14 @@ const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.
 ////		return par[0]+pow(x[0],2)*par[1];
 //}
 
-Double_t mix_pol1(Double_t *x, Double_t *par){
+Double_t mix_pol2(Double_t *x, Double_t *par){
 		if(x[0] < 0.5 && x[0] > -0.5) return par[0];
-	//	else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
-	//	else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
-		else if( x[0]<-0.5 ) return par[0]+par[1]*pow(x[0]+0.5,2);
-		else return par[1]*(x[0]-0.5)+par[0]+par[1]*pow(x[0]-0.5,2);
+		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]*x[0];
+		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]*x[0];
+		//else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+		//else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+	//	else if( x[0]<-0.5 ) return par[0]+par[1]*pow(x[0]+0.5,2);
+	//	else return par[1]*(x[0]-0.5)+par[0]+par[1]*pow(x[0]-0.5,2);
 }
 
 class JTCSignalProducer :public signalFactoryBase {
@@ -43,6 +45,7 @@ class JTCSignalProducer :public signalFactoryBase {
 				TH1* signal_X(bool doRebin=1){ return projX( doRebin, sig, -1, 1);}
 				TH1* raw_X(bool doRebin=1){ return projX( doRebin, raw_sig, -1, 1);}
 				TH1D* doDrIntegral(TString name);
+				float getMean(TH1* h, float x1, float x2);
 				void WriteTH2();
 				void WriteTH1();
 				void getAllProj(TString name, bool rebin = 1);
@@ -63,7 +66,7 @@ class JTCSignalProducer :public signalFactoryBase {
 				// 3: subtract the bkg to get the sig
 				float sidebandmin=1.4 , sidebandmax=1.8;
 				//float sidebandmin=-TMath::Pi()/2 , sidebandmax=-1.2;
-				bool doSideBandMixing = 0;
+				bool doSideBandMixing = 0, shiftSignal=1;
 				TH2D* raw_sig =0;
 				TH2D* sig =0;
 				TH2D* sig_step2 =0;  // right after the mixing correction
@@ -80,7 +83,7 @@ class JTCSignalProducer :public signalFactoryBase {
 };
 
 void JTCSignalProducer::pullSeagull(){
-		TF1 *func = new TF1("func", mix_pol1, -3, 3, 2);
+		TF1 *func = new TF1("func", mix_pol2, -3, 3, 3);
 	//	TF1 *func = new TF1("func", "pol2", -2.5, 2.5);
 		int n1 = sig->GetYaxis()->FindBin(1.4);
 		int n2 = sig->GetYaxis()->FindBin(1.799);
@@ -88,8 +91,10 @@ void JTCSignalProducer::pullSeagull(){
 		htm->Scale(1.0/(n2-n1));
 		htm->Rebin(4); htm->Scale(0.25);
 //		TH1D *htm1=(TProfile*)invariantRebin((TH1*)htm, "tet_fitted", 21, etabin);
+		float mean = getMean(htm, -0.5, 0.5);
+		func->SetParameters(mean, 0, 0);
 		htm->Fit(func, "", "", -2.5, 2.499);
-		float mean = func->GetParameter(0);
+		mean = func->GetParameter(0);
 		//htm1->Fit(func);
 		auto line = new TLine(); line->DrawLine(-3, mean, 3, mean);
 		for(int i=1; i<sig->GetNbinsX()+1; ++i){
@@ -100,11 +105,17 @@ void JTCSignalProducer::pullSeagull(){
 						if(sig->GetBinContent(i,j) == 0) continue;
 						float cont= sig->GetBinContent(i,j);
 						sig->SetBinContent(i,j, cont*corr); 
-				}
+			}
 		}
 
 //		delete htm;
 //		return 0;
+}
+
+float JTCSignalProducer::getMean(TH1* h, float x1, float x2){
+		int n1 = h->FindBin(x1);
+		int n2 = h->FindBin(x2);
+		return h->Integral(n1, n2)/(n2-n1+1);
 }
 
 void JTCSignalProducer::doBkgSubtraction(TString name, float sideMin, float sideMax){
@@ -143,6 +154,13 @@ TH2D* JTCSignalProducer::getSignal(TString name, bool doSeagullCorr){
 		bkg = (TH2D*) getV2Bkg(sig,sideMin , sideMax );
 		bkg->SetName("bkg_"+name);
 		sig->Add(sig, bkg, 1, -1);
+		if(shiftSignal){
+			   	getSignal_phiSideBand("sideBand");
+				float mean = getMean(side_deta, -0.5, 0.5);
+				cout<<"mean = "<<mean<<endl;
+				cout<<"name : "<<name<<endl;
+				shiftTH2D(sig, -mean);
+		}
 		return sig;
 }
 
@@ -300,6 +318,8 @@ void JTCSignalProducer::drawSideBandCheck(){
 		h2->SetAxisRange(-2.5, 2.499, "X");
 		h2->Draw("same");
 		h1->Draw("same");
+		TLine* l = new TLine(); l->SetLineStyle(2);
+		l->DrawLine(-2.5, 0, 2.5, 0);
 }
 
 void JTCSignalProducer::drawSliceSideBand(TString name){
