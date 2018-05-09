@@ -66,7 +66,7 @@ class JTCSignalProducer :public signalFactoryBase {
 				// 3: subtract the bkg to get the sig
 				float sidebandmin=1.4 , sidebandmax=1.8;
 				//float sidebandmin=-TMath::Pi()/2 , sidebandmax=-1.2;
-				bool doSideBandMixing = 0, shiftSignal=1;
+				bool doSideBandMixing = 0, shiftSignal=0;
 				TH2D* raw_sig =0;
 				TH2D* sig =0;
 				TH2D* sig_step2 =0;  // right after the mixing correction

@@ -145,9 +145,10 @@ void batchGet2D(TString name,TString name2, TH2D* h[9][4], bool isNumber=0, bool
 		TFile *f = new TFile(dataDumpPath +name2+"_JTCSignal.root");
 		for(int i=0; i<9; ++i){
 				for(int j=0; j<ncent; ++j){
+	//					cout<<name+Form("_%d_%d",i,j)<<endl;
 						if(isNumber) h[i][j]=(TH2D*) f->Get(name+Form("_%d_%d",i,j));
 						else h[i][j]=(TH2D*) f->Get(name+Form("_pTweighted_%d_%d",i,j));
-						//				cout<<h[i][j]->GetName()<<endl;
+	//									cout<<h[i][j]->GetName()<<endl;
 				}
 		}
 }
@@ -189,8 +190,11 @@ void showPlot(TString name, bool ispp , float x1, float x2, int n_args, ...){
 										cm->cd(i+1);
 										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 								}
-								else { cm->drawHist(h[index_94(i,j)], i+1, 4-j);
+								else { 
+										cm->drawHist(h[index_94(i,j)], i+1, 4-j);
+										cout<<"i = "<<i<<", j = "<<j<<": "<<h[index_94(i,j)]->GetName()<<endl;
 										cm->CD(i+1, 4-j);
+										gPad->SetLogy();
 										tmp = track_label[i]+" "+cent_label[j];
 										tx->DrawLatexNDC(0.1, 0.93, tmp);
 								}
@@ -542,7 +546,8 @@ void getRawDr(TString name, TH1D* h[9][4], bool isNumber = 0, bool ispp = 1){
 		for(int i=0; i<9 ; ++i){
 				for(int j=0;j<ncent ; ++j){
 						sp->sig=sig[i][j];
-						h[i][j]= sp->doDrIntegral(name+Form("_%d_%d",i, j));
+						h[i][j]= sp->doDrIntegral(name+Form("_raw_%d_%d",i, j));
+						sp->doDrPhaseCorrection(sig[i][j], h[i][j]);
 						//cout<<h[i][j]->GetName()<<endl;
 				}
 		}
@@ -556,6 +561,7 @@ void getDr(TString name, TH1D* h[9][4], bool isNumber = 0, bool ispp = 1){
 				for(int j=0;j<ncent ; ++j){
 						sp->sig=sig[i][j];
 						h[i][j]= sp->doDrIntegral(name+Form("_%d_%d",i, j));
+						sp->doDrPhaseCorrection(sig[i][j], h[i][j]);
 						//cout<<h[i][j]->GetName()<<endl;
 				}
 		}

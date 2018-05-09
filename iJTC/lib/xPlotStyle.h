@@ -114,6 +114,8 @@ void doublePanelFig::addHist(TH1* h, int i, int j, int n){
 		histStyle(h, n);
 		h->Draw("same");
 }
+
+
 void doublePanelFig::histStyle(TH1* h, int n){
 		if(n==1){
 				h->GetXaxis()->SetLabelSize(0.11);
