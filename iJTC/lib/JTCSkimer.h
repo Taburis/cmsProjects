@@ -1,5 +1,15 @@
 
+#include <stdlib.h>
+#include <fstream>
+#include <vector>
+#include "TTree.h"
 #include "histManager.h"
+#include "TFile.h"
+#include "TMath.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TF1.h"
+#include "TString.h"
 #include "xAxis.h"
 
 const int nPt = 6;
@@ -218,8 +228,8 @@ void JTCSkimer::quickHistReg(histManager *h, TString cap, histCase &hc){
 		hc.jet_phi = new TH1D*[nCent];
 		for(int j=0; j<nCent; ++j){
 				tmp = centLabel[j]+" to "+centLabel[j+1];
-				hc.jet_corrpt[j] = hm->regHist<TH1D>(name+Form("_corrpt_%d",j), tmp, 50, 0, 500);
-				hc.jet_eta[j] = hm->regHist<TH1D>(name+Form("_eta_%d",j), tmp, 100, 2, 2);
+				hc.jet_corrpt[j] = hm->regHist<TH1D>(name+Form("_corrpt_%d",j), tmp, 50, 0, 500.0);
+				hc.jet_eta[j] = hm->regHist<TH1D>(name+Form("_eta_%d",j), tmp, 100, -2.0, 2.0);
 				hc.jet_phi[j] = hm->regHist<TH1D>(name+Form("_phi_%d",j), tmp, 72, -TMath::Pi(), TMath::Pi());
 		}
 }
