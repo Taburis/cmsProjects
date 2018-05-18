@@ -5,31 +5,58 @@
 
 template <typename T>
 class histPlayer2D {
-		public : histPlayer2D(TString hname, int x, int y):n1(x), n2(y){
-						 name = hname;
-						 hist = new T*[n1*n2];
-				 };
+		public : histPlayer2D(){};
 				 histPlayer2D(T** h, int x, int y): n1(x), n2(y){ hist = h;};
 				 ~histPlayer2D();
-				 void read(TFile* f);
+				 void read(TFile* f, TString hname, int x, int y);
 				 void saveHist();
 				 int* rebinIndex(int nin, float *inbin, int nout, float *outbin);
 				 T** rebin2D(TString name, int nx0, float *x0bin, int ny0, float *y0bin, int nx, float *xbin, int ny, float *ybin);
-				 unsigned int flatten(int x, int y){ return x+y*n1; };
+				 void selfRebin2D(TString name, int nx0, float *x0bin, int ny0, float *y0bin, int nx, float *xbin, int ny, float *ybin);
+				 T** binary_operation(TString name, T** h1, T** h2, TString opt);
+				 unsigned int flatten(int x, int y){ return x+y*n1;};
 				 T* at(int x, int y){ return hist[x+y*n1]; };
 		public :
 				 TString name; 
-				 const int n1, n2;
+				 int n1, n2;
 				 T** hist;
 				 TFile* hf;
 };
 
 template <typename T>
-void histPlayer2D<T>::read(TFile *f){
+void histPlayer2D<T>::read(TFile *f, TString hname, int x, int y){
+		name = hname;
+		n1 = x; n2 = y;
+		hist = new T*[n1*n2];
 		hf=f;
 		for(int i=0; i<n1; ++i){
 				for(int j=0;j<n2;++j) hist[flatten(i, j)] = (T*)f->Get(name+Form("_%d_%d",i,j));
 		}
+}
+
+template<typename T>
+T** histPlayer2D<T>::binary_operation(TString name, T** h1, T** h2, TString opt){
+		T** h = new T*[n1*n2]; 
+		for(int i=0; i<n1; ++i){
+				for(int j=0; j<n2; ++j){
+						//cout<<i<<", "<<j<<endl;
+						h[i+n1*j]=(T*) h1[i+n1*j]->Clone(name + Form("_%d_%d",i,j));
+						if(opt == "ratio") 
+								h[i+n1*j]->Divide(h2[i+n1*j]);
+						else if( opt== "add") 
+								h[i+n1*j]->Add(h2[i+n1*j]);
+						else if( opt== "multiply") 
+								h[i+n1*j]->Multiply(h2[i+n1*j]);
+						else if( opt== "diff") {
+								h[i+n1*j]->Add(h2[i+n1*j], -1);
+						}
+						else if( opt== "binomialRatio") {
+								h[i+n1*j]->Divide(h[i+n1*j], h2[i+n1*j], 1, 1, "B");
+						}
+						else cout<<"no defined operation: "<<opt<<endl;
+				}
+		}
+		return h;
 }
 
 template <typename T>
@@ -79,6 +106,17 @@ T** histPlayer2D<T>::rebin2D(TString name, int nx0, float *x0bin, int ny0, float
 				}
 		}
 		return newh;
+}
+
+template <typename T>
+void histPlayer2D<T>::selfRebin2D(TString hname, int nx0, float *x0bin, int ny0, float *y0bin, int nx, float *xbin, int ny, float *ybin){
+		T** htmp = rebin2D(hname, nx0, x0bin, ny0, y0bin,  nx, xbin, ny, ybin);
+		n1 = nx; n2 = ny;
+		name = hname;
+		for(int i=0; i<n1*n2; ++i){
+				delete (T*)hist[i];
+		}
+		hist = htmp;
 }
 
 template <typename T>

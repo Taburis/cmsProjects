@@ -11,6 +11,7 @@
 #include "TF1.h"
 #include "TString.h"
 #include "xAxis.h"
+#include "mixingTree.h"
 
 const int nPt = 6;
 const int nCent = 2;
@@ -32,80 +33,94 @@ class JTCSkimer{
 				TH1D** jet_phi;
 		};
 		public : 
-				JTCSkimer(){
-				};
-				bool doGenJet=1, doGenTrack=1;
-				void connectTree(TTree* ct, bool isMC, bool isHI);
-				bool isHI, isMC;
-				void eventWeight ();
-				void fillEventInfo();
-				void addGenJet   ();
-				void addRecoJet  ();
-				void addGenTrack ();
-				void addRecoTrack();
-				bool trkCuts(int i);
-				bool eventCuts();
-				bool recoJetCut(int j);
-				bool btagger(int j);
-				void quickHistReg(histManager *h, TString cap, histCase & hc);
-				void configHist();
-				void loop();
-				void write(TString name);
-				double findDr(double eta1, double phi1, double eta2, double phi2);
-				int jetMatch(int j);
-				void trackLoop();
-				void fillCase(histCase &hc);
-				void fillHist();
-				void fillAllJetInfo();
-				void fillJetInfo(histCase &hc);
+		JTCSkimer(){ 
+		};
+		bool doGenJet=1, doGenTrack=1;
+		void connectTree(TTree* ct, bool isMC, bool isHI);
+		void initTree(TTree* ct, bool isMC, bool isHI);
+		void addMixingTree(TString fname);
+		void configMixing();
+		bool isHI, isMC, domixing = 0;
+		void eventWeight(float pthat, float vz, float hibin);
+		void fillEventInfo();
+		void addGenJet   (TTree* t);
+		void addRecoJet  (TTree* t);
+		void addGenTrack (TTree* t);
+		void addRecoTrack(TTree* t);
+		int trkCuts(float trkPt, float trkPtError, float trkEta, float trkChi2, int highPurity, int trkNHit, float trkNdof, float trkNlayer, float pfHcal, float pfEcal);
+		bool eventCuts();
+		bool recoJetCut(int j);
+		bool btagger(int j);
+		void quickHistReg(histManager *h, TString cap, histCase & hc);
+		void configHist();
+		void loop();
+		void write(TString name);
+		double findDr(double eta1, double phi1, double eta2, double phi2);
+		int jetMatch(int j);
+		void trackLoop();
+		void trackLoopForMixing();
+		void fillCase(histCase &hc, bool ismixing = 0);
+		void fillCaseMix(histCase &hc);
+		void fillHist(bool isMixing = 0);
+		void fillAllJetInfo();
+		void fillJetInfo(histCase &hc);
+		float findDrmin(float eta, float phi, vector<float> *jetpt, vector<float> *jeteta, vector<float> *jetphi);
+		void mixingSection(Long64_t voidIndex);
 		public: 
-				histManager *hm;
-				float ptbins[nPt+1] = {1, 2, 3, 4, 8, 12, 400};
-				TString ptLabel[nPt+1] = {"Trk1", "Trk2", "Trk3", "Trk4", "Trk8", "trk12", "Trk400"};
-				float centbins[nCent+1] = {0, 30, 100};
-				TString centLabel[nCent+1] = {"Cent0", "Cent30", "Cent100"};
-				TTree* t;
-				// event branch
-				float pthat;
-				float vz ;
-				int hiBin;
-				// jet branch
-				vector<float> *gen_jtpt=0, *gen_jteta=0, *gen_jtphi=0, *jtpt=0, *jteta=0, *jtphi=0;
-				vector<float> *discr_csv=0;
-				vector<int>	*flavorForB=0;
-				// gen jet branch
+		histManager *hm;
+		//mixing config------------------------------
+		bool do_mixing=0;
+		int nPerTrigger=25;
+		int nvz_mix, ncent_mix;
+		//-----------------------------------------
+		float ptbins[nPt+1] = {1, 2, 3, 4, 8, 12, 400};
+		TString ptLabel[nPt+1] = {"Trk1", "Trk2", "Trk3", "Trk4", "Trk8", "trk12", "Trk400"};
+		float centbins[nCent+1] = {0, 30, 100};
+		TString centLabel[nCent+1] = {"Cent0", "Cent30", "Cent100"};
+		TTree* t;
+		// event branch
+		float pthat;
+		float vz ;
+		int hiBin=0;
+		mixingTree *mt = 0;
+		// jet branch
+		vector<float> *gen_jtpt=0, *gen_jteta=0, *gen_jtphi=0, *jtpt=0, *jteta=0, *jtphi=0;
+		vector<float> *discr_csv=0;
+		vector<int>	*flavorForB=0;
+		// gen jet branch
 
-				//gen particle branch
-				vector<float> *pt=0, *eta=0, *phi=0, *chg=0;
+		//gen particle branch
+		vector<float> *pt=0, *eta=0, *phi=0, *chg=0;
 
-				//track branch
-				vector<float> *trkPt=0, *trkEta=0, *trkPhi=0, *trkChi2=0, *trkNdof=0, *trkPtError=0;
-				vector<float> *trkDz=0, *trkDzError=0, *trkDxy=0, *trkDxyError=0, *pfEcal=0, *pfHcal=0;
-				vector<int> *trkNlayer=0, *trkNHit=0;
-				vector<bool> *highPurity=0; 
+		//track branch
+		vector<float> *trkPt=0, *trkEta=0, *trkPhi=0, *trkChi2=0, *trkPtError=0;
+		vector<float> *trkDz=0, *trkDzError=0, *trkDxy=0, *trkDxyError=0, *pfEcal=0, *pfHcal=0;
+		vector<int> *trkNlayer=0, *trkNdof=0, *trkNHit=0;
+		vector<bool> *highPurity=0; 
 
-				int  *HBHEFilter=0, *collisionEventSelection = 0;
+		int  HBHEFilter=0, collisionEventSelection = 0;
 
-				//variables using in the correlations
-				float selectedJt_pt;
-				float selectedJt_eta;
-				float selectedJt_phi;
-				float selectedTrack_pt;
-				float selectedTrack_eta;
-				float selectedTrack_phi;
-				float weights;
-				bool foundTrueBJet, foundTaggedBJet, foundInclJet;
-				float trkCorr=1, JESCorr=1;
-				xAxis *ptax, *centax;
-				// end of the variables declaration	
+		//variables using in the correlations
+		float selectedJt_pt;
+		float selectedJt_eta;
+		float selectedJt_phi;
+		float selectedTrack_pt;
+		float selectedTrack_eta;
+		float selectedTrack_phi;
+		float weights;
+		bool foundTrueBJet, foundTaggedBJet, foundInclJet;
+		float trkCorr=1, JESCorr=1;
+		xAxis *ptax, *centax;
+		// end of the variables declaration	
+		std::vector<unsigned int >** mixTable;
 
-				TH1D* hvz, *hpthat, *hcent;
-				histCase inclCase;
-				histCase taggedBCase;
-				histCase trueBCase;
+		TH1D* hvz, *hpthat, *hcent;
+		histCase inclCase;
+		histCase taggedBCase;
+		histCase trueBCase;
 };
 
-void JTCSkimer::addGenJet(){
+void JTCSkimer::addGenJet(TTree *t){
 		t->SetBranchStatus("genpt",1);
 		t->SetBranchStatus("geneta",1);
 		t->SetBranchStatus("genphi",1);
@@ -114,7 +129,7 @@ void JTCSkimer::addGenJet(){
 		t->SetBranchAddress("genphi",&gen_jtphi);
 }
 
-void JTCSkimer::addRecoJet(){
+void JTCSkimer::addRecoJet(TTree *t){
 		t->SetBranchStatus("pf_corrpt",1);
 		t->SetBranchAddress("pf_corrpt",&jtpt);
 		t->SetBranchStatus("pf_jteta",1);
@@ -127,7 +142,7 @@ void JTCSkimer::addRecoJet(){
 		t->SetBranchAddress("pf_discr_csvV1" ,&discr_csv);
 }
 
-void JTCSkimer::addGenTrack(){
+void JTCSkimer::addGenTrack(TTree *t){
 		t->SetBranchStatus("pt",1);
 		t->SetBranchAddress("pt",&pt);
 		t->SetBranchStatus("eta",1);
@@ -137,7 +152,7 @@ void JTCSkimer::addGenTrack(){
 		t->SetBranchStatus("chg",1);
 		t->SetBranchAddress("chg",&chg);
 }
-void JTCSkimer::addRecoTrack(){
+void JTCSkimer::addRecoTrack(TTree *t){
 		t->SetBranchStatus("highPurity",1);
 		t->SetBranchAddress("highPurity",&highPurity);
 		t->SetBranchStatus("trkPt",1);
@@ -170,32 +185,35 @@ void JTCSkimer::addRecoTrack(){
 		t->SetBranchAddress("pfHcal",&pfHcal);
 }
 
+
+void JTCSkimer::initTree(TTree *ct, bool ismc, bool ishi){
+		ct->SetBranchStatus("*", 0);
+		if(ismc){
+				ct->SetBranchStatus("pthat",1);
+				ct->SetBranchAddress("pthat",&pthat);
+				addGenJet(ct);
+				addGenTrack(ct);
+		}
+		if(ishi){
+				ct->SetBranchStatus("hiBin",1);
+				ct->SetBranchAddress("hiBin",&hiBin);
+		}
+		else {
+				ct->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
+				ct->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
+		}
+		ct->SetBranchStatus("pprimaryVertexFilter",1);
+		ct->SetBranchAddress("pprimaryVertexFilter",&collisionEventSelection);
+		ct->SetBranchStatus("vz",1);
+		ct->SetBranchAddress("vz",&vz);
+		addRecoJet  (ct);
+		addRecoTrack(ct);
+}
+
 void JTCSkimer::connectTree(TTree *ct, bool ismc, bool ishi){
 		isMC = ismc; isHI = ishi;
 		t=ct;
-		t->SetBranchStatus("*", 0);
-
-		t->SetBranchStatus("pprimaryVertexFilter",1);
-		t->SetBranchAddress("pprimaryVertexFilter",&collisionEventSelection);
-		if(isHI){
-				t->SetBranchStatus("hiBin",1);
-				t->SetBranchAddress("hiBin",&hiBin);
-		}
-		else {
-				t->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
-				t->SetBranchAddress("HBHENoiseFilterResultRun2Loose",&HBHEFilter);
-		}
-		if(isMC){
-				t->SetBranchStatus("pthat",1);
-				t->SetBranchAddress("pthat",&pthat);
-				addGenJet();
-				addGenTrack();
-		}
-
-		t->SetBranchStatus("vz",1);
-		t->SetBranchAddress("vz",&vz);
-		addRecoJet  ();
-		addRecoTrack();
+		initTree(t, isMC, isHI);
 }
 
 void JTCSkimer::quickHistReg(histManager *h, TString cap, histCase &hc){
@@ -212,7 +230,7 @@ void JTCSkimer::quickHistReg(histManager *h, TString cap, histCase &hc){
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){
 						tmp = centLabel[j]+"_"+centLabel[j+1]+"_"+ptLabel[i]+"_"+ptLabel[i+1];
-						hc.sig[i+j*nPt] = hm->regHist<TH2D>(name+Form("_%d_%d",i, j), name+tmp,
+						hc.sig[i+j*nPt] = hm->regHist<TH2D>(name+Form("_%d_%d",i, j), tmp,
 										nHistoBinsX,-5,5,nHistoBinsY,-TMath::Pi()/2,3*TMath::Pi()/2);
 						hc.sig_pTweighted[i+j*nPt] = hm->regHist<TH2D>(name+Form("_pTweighted_%d_%d",i, j), tmp,
 										nHistoBinsX,-5,5, nHistoBinsY,-TMath::Pi()/2,3*TMath::Pi()/2);
@@ -269,7 +287,7 @@ void JTCSkimer::fillJetInfo(histCase &hc){
 		}
 }
 
-void JTCSkimer::fillCase(histCase &hc){
+void JTCSkimer::fillCase(histCase &hc, bool ismixing){
 		float deta = selectedJt_eta - selectedTrack_eta;
 		float dphi = selectedJt_phi - selectedTrack_phi;
 		while(dphi>(1.5*TMath::Pi())){dphi+= -2*TMath::Pi();}
@@ -278,8 +296,13 @@ void JTCSkimer::fillCase(histCase &hc){
 		int i = ptax->findBin(selectedTrack_pt);
 		if(!isHI){ 
 				for(int j=0; j<nCent; ++j){
-						hc.sig[i+j*nPt]->Fill(deta, dphi, weights*trkCorr);
-						hc.sig_pTweighted[i+j*nPt]->Fill(deta, dphi, weights*selectedTrack_pt*trkCorr);
+						if(ismixing){
+//								cout<<"filling mixing"<<endl;
+								hc.mixing[i+j*nPt]->Fill(deta, dphi, weights*trkCorr);
+						} else {
+								hc.sig[i+j*nPt]->Fill(deta, dphi, weights*trkCorr);
+								hc.sig_pTweighted[i+j*nPt]->Fill(deta, dphi, weights*selectedTrack_pt*trkCorr);
+						}
 				}
 		}
 }
@@ -289,8 +312,15 @@ void JTCSkimer::fillEventInfo(){
 		hpthat->Fill(pthat, weights);
 }
 
-void JTCSkimer::fillHist(){
-		fillCase(inclCase);
-		if(foundTrueBJet)fillCase(trueBCase);
-		if(foundTaggedBJet)fillCase(taggedBCase);
+void JTCSkimer::addMixingTree(TString name){
+		if(mt==0) mt = new mixingTree(t->GetName());
+		cout<<t->GetName()<<" has been created"<<endl;
+		mt->t->Add(name);
 }
+
+void JTCSkimer::fillHist(bool isMixing){
+		fillCase(inclCase, isMixing);
+		if(foundTrueBJet)fillCase(trueBCase, isMixing);
+		if(foundTaggedBJet)fillCase(taggedBCase, isMixing);
+}
+
