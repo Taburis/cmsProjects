@@ -242,7 +242,7 @@ void JTCSkimer::trackLoopForMixing(){
 						selectedTrack_pt =(mt->pt )->at(jtk);
 						selectedTrack_eta=(mt->eta)->at(jtk);
 						selectedTrack_phi=(mt->phi)->at(jtk);
-						if(selectedTrack_pt>399) selectedTrack_pt = 399; // for setting the maximum bin content
+						if(selectedTrack_pt>399) selectedTrack_pt = 399; //setting the maximum bin content, only for gen particle
 						fillHist(1);
 				}
 		}	else{

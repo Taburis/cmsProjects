@@ -1,6 +1,7 @@
 
 #ifndef mixingTree_H
 #define mixingTree_H
+#include "TChain.h"
 
 class mixingTree{
 		public : mixingTree(TString name){t=new TChain(name);};

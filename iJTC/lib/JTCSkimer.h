@@ -13,6 +13,16 @@
 #include "xAxis.h"
 #include "mixingTree.h"
 
+struct histCase{
+		//if want to add any hist, need to add it in the quickRegHist as well, and add the filling in the fillCase
+		TH2D** sig;
+		TH2D** sig_pTweighted;
+		TH2D** mixing;
+		TH1D** jet_corrpt;
+		TH1D** jet_eta;
+		TH1D** jet_phi;
+};
+
 const int nPt = 6;
 const int nCent = 2;
 TF1 *ppVz = new TF1("newppVz","gaus",-15,15);
@@ -23,101 +33,94 @@ void config(){
 }
 
 class JTCSkimer{
-		struct histCase{
-				//if want to add any hist, need to add it in the quickRegHist as well, and add the filling in the fillCase
-				TH2D** sig;
-				TH2D** sig_pTweighted;
-				TH2D** mixing;
-				TH1D** jet_corrpt;
-				TH1D** jet_eta;
-				TH1D** jet_phi;
-		};
 		public : 
-		JTCSkimer(){ 
-		};
-		bool doGenJet=1, doGenTrack=1;
-		void connectTree(TTree* ct, bool isMC, bool isHI);
-		void initTree(TTree* ct, bool isMC, bool isHI);
-		void addMixingTree(TString fname);
-		void configMixing();
-		bool isHI, isMC, domixing = 0;
-		void eventWeight(float pthat, float vz, float hibin);
-		void fillEventInfo();
-		void addGenJet   (TTree* t);
-		void addRecoJet  (TTree* t);
-		void addGenTrack (TTree* t);
-		void addRecoTrack(TTree* t);
-		int trkCuts(float trkPt, float trkPtError, float trkEta, float trkChi2, int highPurity, int trkNHit, float trkNdof, float trkNlayer, float pfHcal, float pfEcal);
-		bool eventCuts();
-		bool recoJetCut(int j);
-		bool btagger(int j);
-		void quickHistReg(histManager *h, TString cap, histCase & hc);
-		void configHist();
-		void loop();
-		void write(TString name);
-		double findDr(double eta1, double phi1, double eta2, double phi2);
-		int jetMatch(int j);
-		void trackLoop();
-		void trackLoopForMixing();
-		void fillCase(histCase &hc, bool ismixing = 0);
-		void fillCaseMix(histCase &hc);
-		void fillHist(bool isMixing = 0);
-		void fillAllJetInfo();
-		void fillJetInfo(histCase &hc);
-		float findDrmin(float eta, float phi, vector<float> *jetpt, vector<float> *jeteta, vector<float> *jetphi);
-		void mixingSection(Long64_t voidIndex);
+				JTCSkimer(){ 
+				};
+				bool doGenJet=1, doGenTrack=1;
+				void connectTree(TTree* ct, bool isMC, bool isHI);
+				void initTree(TTree* ct, bool isMC, bool isHI);
+				void addMixingTree(TString fname);
+				void configMixing();
+				bool isHI, isMC, domixing = 0;
+				void eventWeight(float pthat, float vz, float hibin);
+				void fillEventInfo();
+				void addGenJet   (TTree* t);
+				void addRecoJet  (TTree* t);
+				void addGenTrack (TTree* t);
+				void addRecoTrack(TTree* t);
+				int trkCuts(float trkPt, float trkPtError, float trkEta, float trkChi2, int highPurity, int trkNHit, float trkNdof, float trkNlayer, float pfHcal, float pfEcal);
+				bool eventCuts();
+				bool recoJetCut(int j);
+				bool btagger(int j);
+				void quickHistReg(histManager *h, TString cap, histCase & hc);
+				void configHist();
+				void loop();
+				void write(TString name);
+				double findDr(double eta1, double phi1, double eta2, double phi2);
+				int jetMatch(int j);
+				void trackLoop();
+				void trackLoopForMixing();
+				void fillCase(histCase &hc, bool ismixing = 0);
+				void fillCaseMix(histCase &hc);
+				void fillHist(bool isMixing = 0);
+				void fillAllJetInfo();
+				void fillJetInfo(histCase &hc);
+				float findDrmin(float eta, float phi, vector<float> *jetpt, vector<float> *jeteta, vector<float> *jetphi);
+				void mixingSection(Long64_t voidIndex);
 		public: 
-		histManager *hm;
-		//mixing config------------------------------
-		bool do_mixing=0;
-		int nPerTrigger=25;
-		int nvz_mix, ncent_mix;
-		//-----------------------------------------
-		float ptbins[nPt+1] = {1, 2, 3, 4, 8, 12, 400};
-		TString ptLabel[nPt+1] = {"Trk1", "Trk2", "Trk3", "Trk4", "Trk8", "trk12", "Trk400"};
-		float centbins[nCent+1] = {0, 30, 100};
-		TString centLabel[nCent+1] = {"Cent0", "Cent30", "Cent100"};
-		TTree* t;
-		// event branch
-		float pthat;
-		float vz ;
-		int hiBin=0;
-		mixingTree *mt = 0;
-		// jet branch
-		vector<float> *gen_jtpt=0, *gen_jteta=0, *gen_jtphi=0, *jtpt=0, *jteta=0, *jtphi=0;
-		vector<float> *discr_csv=0;
-		vector<int>	*flavorForB=0;
-		// gen jet branch
+				histManager *hm;
+				//mixing config------------------------------
+				bool do_mixing=0;
+				int nPerTrigger=25;
+				int nvz_mix, ncent_mix;
+				//-----------------------------------------
+				float ptbins[nPt+1] = {1, 2, 3, 4, 8, 12, 400};
+				TString ptLabel[nPt+1] = {"Trk1", "Trk2", "Trk3", "Trk4", "Trk8", "trk12", "Trk400"};
+				float centbins[nCent+1] = {0, 30, 100};
+				TString centLabel[nCent+1] = {"Cent0", "Cent30", "Cent100"};
+				TTree* t;
+				// event branch
+				float pthat;
+				float vz ;
+				int hiBin=0;
+				mixingTree *mt = 0;
+				// jet branch
+				vector<float> *gen_jtpt=0, *gen_jteta=0, *gen_jtphi=0, *jtpt=0, *jteta=0, *jtphi=0;
+				vector<float> *discr_csv=0;
+				vector<int>	*flavorForB=0;
+				// gen jet branch
 
-		//gen particle branch
-		vector<float> *pt=0, *eta=0, *phi=0, *chg=0;
+				//gen particle branch
+				vector<float> *pt=0, *eta=0, *phi=0, *chg=0;
 
-		//track branch
-		vector<float> *trkPt=0, *trkEta=0, *trkPhi=0, *trkChi2=0, *trkPtError=0;
-		vector<float> *trkDz=0, *trkDzError=0, *trkDxy=0, *trkDxyError=0, *pfEcal=0, *pfHcal=0;
-		vector<int> *trkNlayer=0, *trkNdof=0, *trkNHit=0;
-		vector<bool> *highPurity=0; 
+				//track branch
+				vector<float> *trkPt=0, *trkEta=0, *trkPhi=0, *trkChi2=0, *trkPtError=0;
+				vector<float> *trkDz=0, *trkDzError=0, *trkDxy=0, *trkDxyError=0, *pfEcal=0, *pfHcal=0;
+				vector<int> *trkNlayer=0, *trkNdof=0, *trkNHit=0;
+				vector<bool> *highPurity=0; 
 
-		int  HBHEFilter=0, collisionEventSelection = 0;
+				int  HBHEFilter=0, collisionEventSelection = 0;
 
-		//variables using in the correlations
-		float selectedJt_pt;
-		float selectedJt_eta;
-		float selectedJt_phi;
-		float selectedTrack_pt;
-		float selectedTrack_eta;
-		float selectedTrack_phi;
-		float weights;
-		bool foundTrueBJet, foundTaggedBJet, foundInclJet;
-		float trkCorr=1, JESCorr=1;
-		xAxis *ptax, *centax;
-		// end of the variables declaration	
-		std::vector<unsigned int >** mixTable;
+				//variables using in the correlations
+				float selectedJt_pt;
+				float selectedJt_eta;
+				float selectedJt_phi;
+				float selectedTrack_pt;
+				float selectedTrack_eta;
+				float selectedTrack_phi;
+				float weights;
+				bool foundTrueBJet, foundTaggedBJet, foundInclJet;
+				float trkCorr=1, JESCorr=1;
+				xAxis *ptax, *centax;
+				// end of the variables declaration	
+				std::vector<unsigned int >** mixTable;
 
-		TH1D* hvz, *hpthat, *hcent;
-		histCase inclCase;
-		histCase taggedBCase;
-		histCase trueBCase;
+				TH1D* hvz, *hpthat, *hcent;
+				// if add a new histCase here, need to add it in the quickHistReg function as well
+				histCase inclCase;
+				histCase taggedBCase;
+				histCase trueBCase;
+				histCase taggedTrueBCase;
 };
 
 void JTCSkimer::addGenJet(TTree *t){
@@ -263,6 +266,7 @@ void JTCSkimer::configHist(){
 		quickHistReg(hm, "inclJet", inclCase);
 		quickHistReg(hm, "taggedBJet", taggedBCase);
 		quickHistReg(hm, "trueBJet", trueBCase);
+		quickHistReg(hm, "taggedTrueBJet", taggedTrueBCase);
 		hm->sumw2();
 }
 
@@ -297,7 +301,7 @@ void JTCSkimer::fillCase(histCase &hc, bool ismixing){
 		if(!isHI){ 
 				for(int j=0; j<nCent; ++j){
 						if(ismixing){
-//								cout<<"filling mixing"<<endl;
+								//								cout<<"filling mixing"<<endl;
 								hc.mixing[i+j*nPt]->Fill(deta, dphi, weights*trkCorr);
 						} else {
 								hc.sig[i+j*nPt]->Fill(deta, dphi, weights*trkCorr);
@@ -322,5 +326,6 @@ void JTCSkimer::fillHist(bool isMixing){
 		fillCase(inclCase, isMixing);
 		if(foundTrueBJet)fillCase(trueBCase, isMixing);
 		if(foundTaggedBJet)fillCase(taggedBCase, isMixing);
+		if(foundTaggedBJet&&foundTrueBJet)fillCase(taggedTrueBCase, isMixing);
 }
 
