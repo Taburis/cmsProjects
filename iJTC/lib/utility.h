@@ -139,4 +139,11 @@ void h1Symm(TH1D &h, float x , float y){
 	return;
 }
 
+double findDr(double eta1, double phi1, double eta2, double phi2){
+	double dphi = phi1 - phi2;
+	while (dphi > M_PI) dphi-= 2*M_PI;
+	while (dphi <= -M_PI) dphi += 2*M_PI;
+	return sqrt(pow(dphi,2)+pow(eta1-eta2,2));
+}
+
 #endif

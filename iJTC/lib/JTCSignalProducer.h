@@ -19,11 +19,14 @@ const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.
 //}
 
 Double_t mix_pol2(Double_t *x, Double_t *par){
+		//fitting function is: a0+a1*|x-x0|+a2*x^2+a3*x;
 		if(x[0] < 0.5 && x[0] > -0.5) return par[0];
-		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]*x[0];
-		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]*x[0];
-		//else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
-		//else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+//		else if( x[0]<-0.3 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]*x[0]+par[3]*x[0];
+//		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]*x[0]+par[3]*x[0];
+		else if( x[0]<-0.3 ) return par[0]+par[1]*x[0]*x[0]+par[2]*x[0];
+		else return par[0]+par[1]*x[0]*x[0]+par[2]*x[0];
+//		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+//		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
 	//	else if( x[0]<-0.5 ) return par[0]+par[1]*pow(x[0]+0.5,2);
 	//	else return par[1]*(x[0]-0.5)+par[0]+par[1]*pow(x[0]-0.5,2);
 }
@@ -36,8 +39,9 @@ class JTCSignalProducer :public signalFactoryBase {
 				};
 				~JTCSignalProducer();
 				TH2D* getSignal(TString name, bool doSeagullCorr = 0);
-				void pullSeagull();
-				void doBkgSubtraction(TString name, float sideMin = 1.5, float sideMax = 2.5);
+				void pullSeagull(TH2D* hsig);
+				TH2D* mixingCorr(TString name, TH2D* , TH2D*, bool );
+				TH2D*  doBkgSubtraction(TString name, TH2D* h, float sideMin = 1.5, float sideMax = 2.5);
 				void read(TFile *f, TString name);
 				void read1D(TFile *f, TString name);
 				TH1* projX(bool doRebin, TH2D* h, float x, float y, TString opt=""); // for general projection 
@@ -82,29 +86,29 @@ class JTCSignalProducer :public signalFactoryBase {
 				float bkgErr, mixErr;
 };
 
-void JTCSignalProducer::pullSeagull(){
-		TF1 *func = new TF1("func", mix_pol2, -3, 3, 3);
+void JTCSignalProducer::pullSeagull(TH2D* hsig){
+		TF1 *func = new TF1("func", mix_pol2, -3., 3., 3);
 	//	TF1 *func = new TF1("func", "pol2", -2.5, 2.5);
-		int n1 = sig->GetYaxis()->FindBin(1.4);
-		int n2 = sig->GetYaxis()->FindBin(1.799);
-		TH1D *htm = (TH1D*) sig->ProjectionX("side_for_fitting", n1, n2); 
+		int n1 = hsig->GetYaxis()->FindBin(1.4);
+		int n2 = hsig->GetYaxis()->FindBin(1.799);
+		TH1D *htm = (TH1D*) hsig->ProjectionX("side_for_fitting", n1, n2); 
 		htm->Scale(1.0/(n2-n1));
 		htm->Rebin(4); htm->Scale(0.25);
 //		TH1D *htm1=(TProfile*)invariantRebin((TH1*)htm, "tet_fitted", 21, etabin);
 		float mean = getMean(htm, -0.5, 0.5);
 		func->SetParameters(mean, 0, 0);
-		htm->Fit(func, "", "", -2.5, 2.499);
+		htm->Fit(func, "", "", -3., 2.99);
 		mean = func->GetParameter(0);
 		//htm1->Fit(func);
 		auto line = new TLine(); line->DrawLine(-3, mean, 3, mean);
-		for(int i=1; i<sig->GetNbinsX()+1; ++i){
-				float x = sig->GetXaxis()->GetBinCenter(i);
+		for(int i=1; i<hsig->GetNbinsX()+1; ++i){
+				float x = hsig->GetXaxis()->GetBinCenter(i);
 //				if(fabs(x)<0.3) continue;
 				float corr = mean/func->Eval(x);
-				for(int j=1; j<sig->GetNbinsY()+1; ++j){
-						if(sig->GetBinContent(i,j) == 0) continue;
-						float cont= sig->GetBinContent(i,j);
-						sig->SetBinContent(i,j, cont*corr); 
+				for(int j=1; j<hsig->GetNbinsY()+1; ++j){
+						if(hsig->GetBinContent(i,j) == 0) continue;
+						float cont= hsig->GetBinContent(i,j);
+						hsig->SetBinContent(i,j, cont*corr); 
 			}
 		}
 
@@ -118,11 +122,26 @@ float JTCSignalProducer::getMean(TH1* h, float x1, float x2){
 		return h->Integral(n1, n2)/(n2-n1+1);
 }
 
-void JTCSignalProducer::doBkgSubtraction(TString name, float sideMin, float sideMax){
-		bkg = (TH2D*) getV2Bkg(sig,sideMin , sideMax );
-		bkg->SetName("bkg_"+name);
-		sig->Add(sig, bkg, 1, -1);
-		return;
+TH2D* JTCSignalProducer::doBkgSubtraction(TString name, TH2D* h, float sideMin, float sideMax){
+		TH2D* hh =(TH2D*) h->Clone(name);
+		TH2D* htmp = (TH2D*) getV2Bkg(hh,sideMin , sideMax );
+//		htmp->SetName("bkg_"+name);
+		hh->Add(hh, htmp, 1, -1);
+		delete htmp;
+		return hh;
+}
+
+TH2D* JTCSignalProducer::mixingCorr(TString name, TH2D* h, TH2D* hmix, bool doseagull){
+		TH2D* hsig =(TH2D*) h->Clone(name);
+		hsig->Scale(1.0/h->GetXaxis()->GetBinWidth(1)/h->GetYaxis()->GetBinWidth(1)); //make the h2 invariant
+		hsig->GetXaxis()->SetTitle("d#eta");
+		hsig->GetYaxis()->SetTitle("d#phi");
+		hsig->GetXaxis()->CenterTitle();
+		hsig->GetYaxis()->CenterTitle();
+		TH2D* mix_tmp = mixingTableMaker(hmix, doSmoothME);
+		hsig->Divide(mix_tmp);
+		if(doseagull) pullSeagull(hsig);
+		return hsig;
 }
 
 TH2D* JTCSignalProducer::getSignal(TString name, bool doSeagullCorr){
@@ -149,7 +168,7 @@ TH2D* JTCSignalProducer::getSignal(TString name, bool doSeagullCorr){
 		}
 		mix_normalized->SetName("smoothed_mixing_"+name);
 		sig->Divide(mix_normalized);
-		if(doSeagullCorr)	pullSeagull();
+		if(doSeagullCorr)	pullSeagull(sig);
 		sig_step2 = (TH2D*) sig->Clone("sig_mix_corrected_"+name);
 		bkg = (TH2D*) getV2Bkg(sig,sideMin , sideMax );
 		bkg->SetName("bkg_"+name);
@@ -303,6 +322,7 @@ void JTCSignalProducer::drawBkgCheck(bool doX){
 
 
 void JTCSignalProducer::drawSideBandCheck(){
+		cout<<"drawing.."<<endl;
 		TH1 *h1, *h2;
 		h1 = sig_deta; 
 		h2 = side_deta; 
@@ -315,7 +335,7 @@ void JTCSignalProducer::drawSideBandCheck(){
 		h2->SetLineWidth(1);
 		h1->SetLineColor(kBlack);
 		h2->SetLineColor(kOrange+7);
-		h2->SetAxisRange(-2.5, 2.499, "X");
+		h2->SetAxisRange(-3., 2.99, "X");
 		h2->Draw("same");
 		h1->Draw("same");
 		TLine* l = new TLine(); l->SetLineStyle(2);
