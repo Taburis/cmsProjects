@@ -80,7 +80,7 @@ class doublePanelFig : public mCanvasBase {
 };
 
 doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int y, float r):
-		mCanvasBase(name, title, x, y, 350, 400, 0, 0)
+		mCanvasBase(name, title, x, y, 350, 450, 0, 0)
 {
 		style()->cd();
 		//		this->SetMargin(0.5, 0.5, 0.4, 0.40);
