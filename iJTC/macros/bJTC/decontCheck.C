@@ -3,7 +3,9 @@
 #include "standardSequence.C"
 #endif
 
-void doCheck(inputSet &iset, float purity, bool isNumber = 1){
+void doCheck(inputSet &iset, float purity, bool isNumber = 1, bool isHI = 0){
+
+		TString prefix = isHI ? "PH_": ""; 
 		readInput(iset);
 		TH2D** rs_tg, **rs_tt, **rs_in;
 		if(isNumber){
@@ -19,15 +21,24 @@ void doCheck(inputSet &iset, float purity, bool isNumber = 1){
 		if(!isNumber) label+="_pTweighted";
 		auto dr_tt = getDr("dr_tt", rs_tt);
 		auto dr_before= getDr("dr_before",rs_tg);
-		showClosure("decontCheck/dr_beforeDecont_"+label+".pdf", 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_before, dr_tt);
+		showClosure("decontCheck/"+prefix+"dr_beforeDecont_"+label+".pdf", 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_before, dr_tt);
 
 		scale<TH2D>(rs_in, 1-purity);
-		auto rs_pur = binary_operation<TH2D>("raw_sig_pur", rs_tg, rs_in, "diff");
-		scale(rs_pur, 1.0/purity);
+		//auto rs_pur = binary_operation<TH2D>("raw_sig_pur", rs_tg, rs_in, "diff");
+		TH2D** rs_pur = new TH2D*[nPt*nCent]; 
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						cout<<i<<", "<<j<<endl;
+						rs_pur[i+nPt*j]=(TH2D*) rs_tg[i+nPt*j]->Clone(Form("raw_sig_pur_%d_%d",i,j));
+						if(i<nPt-2){ rs_pur[i+nPt*j]->Add(rs_in[i+nPt*j], -1);
+								rs_pur[i+nPt*j]->Scale(1.0/purity);
+						}
+				}
+		}
 
 		auto dr_pur= getDr("dr_pur",rs_pur);
 
-		showClosure("decontCheck/dr_afterDecont_"+label+".pdf", 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
+		showClosure("decontCheck/"+prefix+"dr_afterDecont_"+label+".pdf", 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
 		free<TH1D>(dr_tt);
 		free<TH1D>(dr_pur);
 		free<TH1D>(dr_before);

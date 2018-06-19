@@ -7,7 +7,10 @@
 
 const Double_t etabin[24] ={-3.5, -3, -2.5,-2.,-1.5, -1., -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 1.5,2.,2.5, 3, 3.5};
 const Double_t phibin[18] ={-1.50796, -1.00531,-0.879646, -.75398, -0.628319,-0.502655, -0.376991, -0.251327, -0.125664, 0.125664, 0.251327, 0.376991, 0.502655, 0.628319,.75398, 0.879646, 1.00531,1.50796};
-const float drbin [16] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1., 1.2};
+//const float drbin [15] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.6,0.7,0.8,1. };
+//const int ndr = 14;
+const int ndr = 11;
+const float drbin [12] = {0.,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.45,0.6,0.8,1. };
 
 //Double_t mix_pol2(Double_t *x, Double_t *par){
 //		if(x[0] >-.3 && x[0] < .299) {
@@ -186,7 +189,7 @@ TH2D* JTCSignalProducer::getSignal(TString name, bool doSeagullCorr){
 TH1D* JTCSignalProducer::doDrIntegral(TString name ){
 		TString title = sig->GetTitle();
 		TString hname = "dr_"+name;
-		dr_integral = drDistMaker(sig, hname, title, 14, drbin );
+		dr_integral = drDistMaker(sig, hname, title, ndr, drbin );
 		dr_integral->GetXaxis()->SetTitle("#Deltar");
 		return dr_integral;
 }
@@ -335,7 +338,7 @@ void JTCSignalProducer::drawSideBandCheck(){
 		h2->SetLineWidth(1);
 		h1->SetLineColor(kBlack);
 		h2->SetLineColor(kOrange+7);
-		h2->SetAxisRange(-3., 2.99, "X");
+		h2->SetAxisRange(-2.5, 2.49, "X");
 		h2->Draw("same");
 		h1->Draw("same");
 		TLine* l = new TLine(); l->SetLineStyle(2);

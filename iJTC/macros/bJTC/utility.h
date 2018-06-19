@@ -21,6 +21,7 @@ Color_t color_vec[6] = {kBlue+1, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack}
 const int nPt = 6;
 const int nCent=2;
 
+
 //TLatex* tex = new TLatex(); 
 //tex->SetTextSize(.08);
 
@@ -123,10 +124,11 @@ void scale(T** h, float c){
 }
 
 template<typename T>
-T** binary_operation(TString name, T** h1, T** h2, TString opt){
+T** binary_operation(TString name, T** h1, T** h2, TString opt, bool ispp=0){
+		int ncent = ispp ? 1:nCent;
 		T** h = new T*[nPt*nCent]; 
 		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<nCent; ++j){
+				for(int j=0; j<ncent; ++j){
 						cout<<i<<", "<<j<<endl;
 						h[i+nPt*j]=(T*) h1[i+nPt*j]->Clone(name + Form("_%d_%d",i,j));
 						if(opt == "ratio") 
@@ -213,9 +215,9 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 		va_list ap;
 		va_start(ap, n_args);
 		int ncol = 3, nrow = 2;
-		if( isHI ) {ncol= 4; nrow = 9;}
+		if( isHI ) {ncol= 6; nrow = 2;}
 		auto cm = new mCanvasLoose("c_"+name, "", nrow, ncol);
-		auto tx = new TLatex();  tx->SetTextSize(.08);
+		auto tx = new TLatex();  tx->SetTextSize(.06);
 		auto tl = new TLine(); tl->SetLineStyle(2);
 		int ncent = isHI ? 2: 1;
 		TH1D** h;
@@ -245,6 +247,7 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 				h = va_arg(ap, TH1D**);
 				for(int i=0; i<nPt ; ++i){
 						for(int j=0; j<ncent; ++j){
+								//cout<<i<<", "<<j<<endl;
 								float grid = (max[i+j*nPt]-min[i+j*nPt])/20;
 
 								cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
@@ -261,11 +264,11 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 										tl->DrawLine(x1, line, x2, line);
 								}
 								else { 
-										cm->drawHist(h[index(i,j)], i+1, 4-j);
+										cm->drawHist(h[index(i,j)], j+1, i+1);
 										cout<<"i = "<<i<<", j = "<<j<<": "<<h[index(i,j)]->GetName()<<endl;
-										cm->CD(i+1, 4-j);
-										gPad->SetLogy();
-										tmp = track_label[i]+" "+cent_label[j];
+										cm->CD(j+1, i+1);
+										//gPad->SetLogy();
+										tmp = track_label[i]+"; "+cent_label[j];
 										tx->DrawLatexNDC(0.1, 0.93, tmp);
 								}
 						}
@@ -367,9 +370,10 @@ void checkBkg(TString name, int ispb = 0){
 }
 
 template <typename T>
-void dumpHists(T** h){
+void dumpHists(T** h, bool ispp = 0){
+		int ncent = ispp ? 1 : nCent;
 		for(int i=0; i<nPt ; ++i){
-				for(int j=0; j<nCent ; ++j){
+				for(int j=0; j<ncent ; ++j){
 						h[i+nPt*j]->Write();
 				}
 		}
@@ -555,19 +559,22 @@ TCanvas* showStack(TString name, bool isHI , float line, float x1, float x2, flo
 								//tx->DrawLatexNDC(0.1, 0.93, tmp);
 						}
 						hs[index(i,j)]->GetXaxis()->SetNdivisions(505);
-//						hs[i+nPt*j]->Draw(); 
+						//						hs[i+nPt*j]->Draw(); 
 				}
 		}
 		cm->SaveAs(figDumpPath+name+".gif");
 		return (TCanvas*) cm;
 }
 
-void showClosure(TString name, float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h2, TString opt="binomialRatio"){
+void showClosure(TString name, float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h2, TString opt="binomialRatio", bool isHI = 0){
 		float cmax;
 		float cmin;
+		int ncol = 3, nrow = 2;
+		if( isHI ) {ncol= 6; nrow = 2;}
 		auto tl = new TLine(); tl->SetLineStyle(2);
-		auto leg = new TLegend(.5, .7, .95, .95); leg->SetLineColor(0);
+		auto leg = new TLegend(.55, .57, .95, .77); leg->SetLineColor(0);
 		auto ratio = binary_operation<TH1D>(name+"_ratio", h1, h2, opt);
+		auto tx = new TLatex();  tx->SetTextSize(.07);
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){
 						cmax=h1[index(i,j)]->GetMaximum();
@@ -577,10 +584,11 @@ void showClosure(TString name, float x1, float x2, float y1, float y2, TString l
 						holder = h2[index(i,j)]->GetMinimum();
 						if(cmin > holder)  cmin = holder ;
 						float grid = (cmax-cmin)/20;
-						h1[index(i,j)]->SetAxisRange(cmin-2.*grid, cmax+3*grid, "Y");
+						h1[index(i,j)]->SetAxisRange(cmin-2.*grid, cmax+4*grid, "Y");
+						h1[index(i,j)]->SetAxisRange(x1, x2, "X");
 				}
 		}
-		auto df = new doublePanelFig(name+"_df", "", 2, 3, 0.4);
+		auto df = new doublePanelFig(name+"_df", "", nrow, ncol, 0.4);
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){
 						h1[i+nPt*j]->SetLineColor(kAzure+2);
@@ -605,6 +613,8 @@ void showClosure(TString name, float x1, float x2, float y1, float y2, TString l
 						df->addHist(ratio[i+nPt*j], i/3+1,i%3+1 , 1);
 						df->CD(i/3+1,i%3+1, 1);
 						tl->DrawLine(x1, 1, x2, 1);
+						df->CD(i/3+1,i%3+1, 0);
+						tx->DrawLatexNDC(0.2, 0.87, track_label[i]);
 				}
 		}
 		leg->AddEntry(h1[0], l1 );
@@ -614,4 +624,84 @@ void showClosure(TString name, float x1, float x2, float y1, float y2, TString l
 		df->SaveAs(figDumpPath+name);
 }
 
+void showClosure_syst(TString name, bool isHI , float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h1err, TH1D** h2, TH1D** h2err, TString opt="binomialRatio"){
+		float cmax;
+		float cmin;
+		int ncol = 3, nrow = 2;
+		if( isHI ) {ncol= 6; nrow = 2;}
+		auto tl = new TLine(); tl->SetLineStyle(2);
+		auto leg = new TLegend(.55, .57, .95, .77); leg->SetLineColor(0);
+		auto ratio = binary_operation<TH1D>(name+"_ratio", h1, h2, opt);
+		auto ratio_err = binary_operation<TH1D>(name+"_ratio_err", h1err, h2err, "ratio");
+		auto tx = new TLatex();  tx->SetTextSize(.07);
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						cmax=h1[index(i,j)]->GetMaximum();
+						float holder = h2[index(i,j)]->GetMaximum();
+						if(cmax< holder)  cmax = holder ;
+						cmin=h1[index(i,j)]->GetMinimum();
+						holder = h2[index(i,j)]->GetMinimum();
+						if(cmin > holder)  cmin = holder ;
+						float grid = (cmax-cmin)/20;
+						h1err[index(i,j)]->SetAxisRange(cmin-2.*grid, cmax+4*grid, "Y");
+						h1err[index(i,j)]->SetAxisRange(x1, x2, "X");
+						h1err[index(i,j)]->SetFillStyle(3345);
+						h2err[index(i,j)]->SetFillStyle(3345);
+						h1err[index(i,j)]->SetFillColor(kAzure+6);
+						h2err[index(i,j)]->SetFillColor(kRed-7);
+						ratio_err[index(i,j)]->SetFillStyle(3345);
+						ratio_err[index(i,j)]->SetFillColor(kGray+1);
+				}
+		}
+		auto df = new doublePanelFig(name+"_df", "", nrow, ncol, 0.4);
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						h1[i+nPt*j]->SetLineColor(kAzure+2);
+						h1[i+nPt*j]->SetMarkerColor(kAzure+2);
+						h2[i+nPt*j]->SetLineColor(kRed+1);
+						h2[i+nPt*j]->SetMarkerColor(kRed+1);
+						h1[i+nPt*j]->SetMarkerStyle(20);
+						h2[i+nPt*j]->SetMarkerStyle(20);
+						h1[i+nPt*j]->SetMarkerSize(0.5);
+						h2[i+nPt*j]->SetMarkerSize(0.5);
+
+						ratio_err[i+nPt*j]->GetXaxis()->SetNdivisions(505);
+						ratio_err[i+nPt*j]->GetYaxis()->SetNdivisions(505);
+						ratio[i+nPt*j]->SetMarkerStyle(20);
+						ratio[i+nPt*j]->SetMarkerSize(0.5);
+						ratio[i+nPt*j]->SetLineColor(kBlue+3);
+						ratio[i+nPt*j]->SetMarkerColor(kBlue+3);
+						ratio_err[i+nPt*j]->SetAxisRange(y1, y2, "Y");
+						ratio_err[i+nPt*j]->SetAxisRange(x1, x2, "X");
+						if(!isHI) {
+								df->addHist(h1err[i+nPt*j], i/3+1,i%3+1, 0, "e2");
+								df->addHist(h2err[i+nPt*j], i/3+1,i%3+1, 0, "e2");
+								df->addHist(h1[i+nPt*j], i/3+1,i%3+1 );
+								df->addHist(h2[i+nPt*j], i/3+1,i%3+1 );
+								df->addHist(ratio_err[i+nPt*j], i/3+1,i%3+1 , 1, "e2");
+								df->addHist(ratio[i+nPt*j], i/3+1,i%3+1 , 1);
+								df->CD(i/3+1,i%3+1, 1);
+								tl->DrawLine(x1, 1, x2, 1);
+								df->CD(i/3+1,i%3+1, 0);
+								tx->DrawLatexNDC(0.2, 0.87, track_label[i]);
+						} else {
+								df->addHist(h1err[i+nPt*j], j+1,i+1, 0, "e2");
+								df->addHist(h2err[i+nPt*j], j+1,i+1, 0, "e2");
+								df->addHist(h1[i+nPt*j], j+1,i+1 );
+								df->addHist(h2[i+nPt*j], j+1,i+1 );
+								df->addHist(ratio_err[i+nPt*j], j+1,i+1 , 1, "e2");
+								df->addHist(ratio[i+nPt*j], j+1,i+1 , 1);
+								df->CD(j+1,i+1, 1);
+								tl->DrawLine(x1, 1, x2, 1);
+								df->CD(j+1,i+1, 0);
+								tx->DrawLatexNDC(0.2, 0.87, track_label[i]+"; "+cent_label[j]);
+						}
+				}
+		}
+		leg->AddEntry(h1[0], l1 );
+		leg->AddEntry(h2[0], l2 );
+		df->CD(1,1 , 0);
+		leg->Draw();
+		df->SaveAs(figDumpPath+name);
+}
 

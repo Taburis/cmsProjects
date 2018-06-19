@@ -219,12 +219,15 @@ void stackHist::setFillColor(){
 	}
 	else {
 		for(int i=0;i<hist_trunk.size();i++){
-			hist_trunk.at(i)->SetFillColor(color_v->at(i));
+			hist_trunk.at(i)->SetFillColorAlpha(color_v->at(i),0.5);
+			//hist_trunk.at(i)->SetFillColor(color_v->at(i));
 		}
 		if(doDiff){
 			for(int i=0;i<hist_trunk_up.size();i++){
-				hist_trunk_up.at(i)->SetFillColor(color_v->at(i));
-				hist_trunk_down.at(i)->SetFillColor(color_v->at(i));
+				hist_trunk_up.at(i)  ->SetFillColorAlpha(color_v->at(i), .5);
+				hist_trunk_down.at(i)->SetFillColorAlpha(color_v->at(i), .5);
+				//hist_trunk_up.at(i)->SetFillColor(color_v->at(i));
+				//hist_trunk_down.at(i)->SetFillColor(color_v->at(i));
 			}
 		}
 	}

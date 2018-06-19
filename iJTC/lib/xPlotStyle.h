@@ -67,7 +67,7 @@ class doublePanelFig : public mCanvasBase {
 		public :
 				doublePanelFig(const char *name, const char *title, int n, int m, float r=0.37);
 				int at(int i, int j, int n=0){ return 2*(i-1)*ncol+2*j+n-2;}
-				void addHist(TH1* h, int i, int j, int n=0);
+				void addHist(TH1* h, int i, int j, int n=0, TString opt = "");
 				TStyle * style();
 				void histStyle(TH1*, int n);
 				void CD(int i, int j, int n) { pad[at(i,j,n)]->cd();}
@@ -109,10 +109,10 @@ doublePanelFig::doublePanelFig(const char * name, const char *title, int x, int 
 		}
 }
 
-void doublePanelFig::addHist(TH1* h, int i, int j, int n){
+void doublePanelFig::addHist(TH1* h, int i, int j, int n, TString opt){
 		pad[at(i,j, n)]->cd();
 		histStyle(h, n);
-		h->Draw("same");
+		h->Draw("same"+opt);
 }
 
 
@@ -152,4 +152,48 @@ TStyle * doublePanelFig::style(){
 		return st;
 		//		st->SetStats(0);
 }
+
+class auxi_canvas: public TCanvas {
+		public :
+				auxi_canvas(TString cname, TString title, float w, float h): 
+						name(cname), cw(w), ch(h),TCanvas(cname, title, w, h){
+						};
+				void divide(int, int);
+				void CD(int);
+		public :
+				TString name;
+				TPad **pad;
+				float cw, ch;
+};
+
+void auxi_canvas::divide(int nx, int ny){
+		float ml = this->GetLeftMargin();
+		float mr = this->GetRightMargin();
+		float mt = this->GetTopMargin();
+		float mb = this->GetBottomMargin();
+		this->SetMargin(0,0,0,0);
+		float h = (1-mt-mb)/nx;
+		float w = (1-ml-mr)/ny;
+		float absl = cw*ml;
+		float absb = ch*mb;
+		pad = new TPad*[nx*ny];
+		for(int i=0; i<nx; ++i){
+				for(int j=0; j<ny; ++j){
+						float sl=0, sb =0;
+						if(j==0) sl = ml;
+						if(i==nx-1) sb = mb;
+						pad[i*ny+j] = new TPad(name, "", w*j+ml-sl, h*(nx-i-1)+mb-sb, ml+w*(j+1), h*(nx-i)+mb);
+						if(j==0) sl = absl/(absl+w*cw);
+						if(i==nx-1) sb = absb/(absb+h*ch);
+						pad[i*ny+j]->SetMargin(sl,0,sb,0);
+						pad[i*ny+j]->Draw();
+				}
+		}
+}
+
+void auxi_canvas::CD(int i){
+		pad[i-1]->cd();
+}
+
+
 #endif

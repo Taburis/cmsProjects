@@ -7,43 +7,57 @@
 #include "get_jet_spectra.C"
 #include "pullSig.C"
 //#include "SSLib.h"
-TH1D** ss_v0(TString name, inputSet &iset){
-		auto dr = decontamination(iset, 0.7);
-		applyBiasCorrection(dr);
+void ss_v0(TString name, inputSet &iset, bool dohist = 0){
+		auto sig = decontamination(iset, 0.7);
+		auto dr = getDr("dr_tmp", sig);
+		applyBiasCorrection(dr, 0, dohist);
 		auto drCorr = applyTkCorrection(name+"_tkCorr", dr);
-		auto drfinal = applyResidual(name, dr);
-		if(iset.isRecoTk) return drCorr;
-		if(iset.isRecoJet) return drfinal;
-		else return dr;
+		auto drfinal = applyResidual(name, drCorr);
+
+		auto sig2 = decontamination(iset, 0.7, 0);
+		auto dr2 = getDr("dr_tmp2", sig2);
+		applyBiasCorrection(dr2, 0, dohist);
+		auto drCorr2 = applyTkCorrection(name+"_pTweighted_tkCorr", dr2, 0);
+		auto drfinal2 = applyResidual(name+"_pTweighted", drCorr2, 0);
+		TString label = tpname(iset);
+		auto wf = TFile::Open(dataDumpPath+"bJTC_fullCorrected_"+label+".root", "recreate");
+		wf->cd();
+		dumpHists<TH1D>(drfinal);
+		dumpHists<TH1D>(drfinal2);
+		wf->Close();
 }
 void ss(){
 		config();
 
-//		pullSig(p6rg);
+//		pullSig(p6gg);
+//		pullSig(p6gr);
 //		pullSig(p6rr);
 //		pullSig(p6rg);
-//		auto js_gr = ss_v0("JS_final_RecRec", p6rr);
-TString name = "test";
-		auto dr = decontamination(p6rr, 0.7);
-		applyBiasCorrection(dr);
-		auto drCorr = applyTkCorrection(name+"_tkCorr", dr);
-		auto drfinal = applyResidual(name, drCorr);
-		auto js_gr= drfinal;
+//		pullSig(ppData);
 
-		TString tyn = tpname(p6rr);
-		TString cap1 = "GenGen", cap = "GenJet_GenTrack";
-		auto sig_tb = read_flatten<TH2D>(dataDumpPath+"trueBJet_"+cap1+"_JTCSignal.root", "signal_trueBJet_"+cap+"_noCorr");
-		auto js_tb = getDr("js_gg_tb", sig_tb);
-//		
-		showClosure("fullClosure_"+tyn+"_over_"+cap1+".pdf", 0, .99, 0.5, 1.5, "corr.", "true b", js_gr, js_tb);
-		showClosure("test.pdf", 0, .99, 0.5, 1.5, "corr.", "true b", drCorr, drfinal);
-//decontamination2(p6rr);
-/*
-		TString cap1 = "RecRec", cap = "RecoJet_RecoTrack";
-		auto sig_in = read_flatten<TH2D>(dataDumpPath+"inclJet_"+cap1+"_JTCSignal.root", "signal_inclJet_"+cap+"_noCorr");
-		auto sig_co = read_flatten<TH2D>(dataDumpPath+"contJet_"+cap1+"_JTCSignal.root", "signal_contJet_"+cap+"_noCorr");
-		auto dr_in = getDr("dr_incl", sig_in);
-		auto dr_co = getDr("dr_cont", sig_co);
-		showClosure("contamination_"+cap1+".pdf", 0, .99, 0.5, 1.5, "corr.", "true b", dr_in, dr_co);
+//		ss_v0("JS_final_RecRec", p6rr,1);
+//		ss_v0("JS_final_Data", ppData);
+
+		//auto js_data = read_flatten<TH1D>(dataDumpPath+"bJTC_fullCorrected_Data.root", "JS_final_Data_pTweighted");
+//		auto js_b_data = read_flatten<TH1D>(dataDumpPath+"bJTC_fullCorrected_Data.root", "JS_final_Data_pTweighted");
+		//auto js_incl_data = read_flatten<TH1D>(dataDumpPath+"incl_pp_referenceForbJTC.root", "inclJTC_pp_Data_pTweighted");
+//		auto js_rr = read_flatten<TH1D>(dataDumpPath+"bJTC_fullCorrected_RecRec.root", "JS_final_RecRec_pTweighted");
+		auto sig_b_gg = read_flatten<TH2D>(dataDumpPath+"trueBJet_GenRec_JTCSignal.root", "signal_trueBJet_GenJet_RecoTrack_pTweighted_noCorr");
+		auto sig_in_gg = read_flatten<TH2D>(dataDumpPath+"inclJet_GenRec_JTCSignal.root", "signal_inclJet_GenJet_RecoTrack_pTweighted_noCorr");
+		//auto sig_b_gg = read_flatten<TH2D>(dataDumpPath+"trueBJet_GenGen_JTCSignal.root", "signal_trueBJet_GenJet_GenTrack_pTweighted_noCorr");
+		//auto sig_in_gg = read_flatten<TH2D>(dataDumpPath+"inclJet_GenGen_JTCSignal.root", "signal_inclJet_GenJet_GenTrack_pTweighted_noCorr");
+		auto js_in_gg = getDr("js_in_gg", sig_in_gg);
+		auto js_b_gg  = getDr("js_b_gg", sig_b_gg);
+//		auto ratio1 = binary_operation<TH1D>("ratio1", js_b_gg, js_in_gg, "ratio");
+//		auto ratio2 = binary_operation<TH1D>("ratio2", js_b_data, js_incl_data, "ratio");
+//		auto ratio2 = binary_operation<TH1D>("ratio2", js_rr, js_incl, "ratio");
+//		showPlot("drOverlay_data_vs_GenGen.pdf", 0, 1, 0, 0.99, 0.2, 1.8, 2, ratio1, ratio2);
+		showClosure("fullClosure_validation.pdf", 0, .99, 0.5, 1.5, "Corr. tag.", "b-jet GenGen", js_b_gg, js_in_gg);
+		/*
 		*/
+//		showClosure("drRatio_validation.pdf", 0, .99, 0.5, 1.5, "tagged GenGen", "incl GenGen", js_gg, js_in_gg);
+		//showClosure("fullClosure_validation.pdf", 0, .99, 0.5, 1.5, "b-jet", "incl jet", js_data, js_incl);
+//		cout<<js_gr[0]->GetName()<<endl;
+//		showPlot("dr_final_data.pdf", 0, 0, 0, 0.99, 0.5, -1.5, 1, js_data);
+
 }

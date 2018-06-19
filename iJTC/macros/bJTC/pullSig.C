@@ -5,7 +5,7 @@ void pullSig(inputSet &iset){
 		TString prefix = tpname(iset);
 		TString cap = histname(iset);
 		bool isppincl = !(iset.isHi);
-		pullSignal("taggedBJet_"+prefix+"_JTCSignal.root", "taggedBJet_"+cap, iset.tg, 1.5, 2.5, 0);
+		pullSignal("taggedBJet_"+prefix+"_JTCSignal.root", "taggedBJet_"+cap, iset.tg, 1.5, 2.5, isppincl);
 		pullSignal("inclJet_"+prefix+"_JTCSignal.root", "inclJet_"+cap, iset.tg, 1.5, 2.5, isppincl);
 		auto sig_tg = read_flatten<TH2D>(dataDumpPath+"taggedBJet_"+prefix+"_JTCSignal.root", "signal_taggedBJet_"+cap+"_noCorr");
 		auto sig_in = read_flatten<TH2D>(dataDumpPath+"inclJet_"+prefix+"_JTCSignal.root", "signal_inclJet_"+cap+"_noCorr");
