@@ -123,14 +123,14 @@ void applyBiasCorrection(TH1D** h, bool isNumber =1, bool hist=0){
 		auto tagf = TFile::Open(dataDumpPath+"ppCSVv1taggerBias2.root");
 		TF1 **tagCorr;
 		TH1D **tagCorr_hist;
-		if(hist){
+		if(!hist){
 				if(isNumber)
 						tagCorr	= read_flatten<TF1>(tagf, "taggedBias");
 				else 
 						tagCorr	= read_flatten<TF1>(tagf, "taggedBias_pTweighted");
 				for(int i=0; i<nPt; ++i){
 						for(int j=0; j<nCent; ++j){
-								cout<<i<<", "<<j<<endl;
+								cout<<i<<", "<<j<<": "<<h[i+nPt*j]->GetName()<<endl;
 								h[i+nPt*j]->Divide(tagCorr[i+nPt*j]);
 						}
 				}
@@ -141,7 +141,8 @@ void applyBiasCorrection(TH1D** h, bool isNumber =1, bool hist=0){
 						tagCorr_hist = read_flatten<TH1D>(tagf, "taggerBias_hist_pTweighted");
 				for(int i=0; i<nPt; ++i){
 						for(int j=0; j<nCent; ++j){
-								cout<<i<<", "<<j<<endl;
+								//cout<<i<<", "<<j<<endl;
+								cout<<i<<", "<<j<<": "<<h[i+nPt*j]->GetName()<<endl;
 								h[i+nPt*j]->Divide(tagCorr_hist[i+nPt*j]);
 						}
 				}

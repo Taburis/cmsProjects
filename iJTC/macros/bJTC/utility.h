@@ -156,7 +156,7 @@ TH1D** getDr(TString name, TH2D** sig){
 				for(int j=0; j<nCent; ++j){
 						cout<<sig[i+nPt*j]->GetName()<<endl;
 						//									cout<<i+j*nPt<<endl;
-						sp.sig=sig[i+nPt*j];
+						sp.sig=(TH2D*)sig[i+nPt*j];
 						dr[i+j*nPt]= sp.doDrIntegral(name+Form("_%d_%d",i, j));
 						sp.doDrPhaseCorrection(sig[i+nPt*j], dr[i+j*nPt]);
 						sp.dr_integral=0;
@@ -177,6 +177,18 @@ void setXtitle(TH1** h, TString title){
 }
 
 
+TH2D** getBkg(TString name, TH2D** h2, float min=1.5, float max = 2.5){
+		JTCSignalProducer sp;
+		TH2D** sig = new TH2D*[nPt*nCent];
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						sig[i+nPt*j] = sp.getV2Bkg(h2[i+nPt*j], min, max);
+						sp.sig=0;
+				}
+		}
+		return sig;
+}
+
 TH1D** projX(TString name, TH2D** sig){
 		JTCSignalProducer sp;
 		TH1D** projx = new TH1D*[nPt*nCent];
@@ -192,7 +204,17 @@ TH1D** projX(TString name, TH2D** sig){
 		}
 		return projx;
 }
-
+TH1D** projY(TString name, TH2D** sig){
+		JTCSignalProducer sp;
+		TH1D** projy = new TH1D*[nPt*nCent];
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						cout<<i<<", "<<j<<endl;
+						projy[i+nPt*j] =(TH1D*) sp.projY(1, sig[i+nPt*j], -1, 1);
+				}
+		}
+		return projy;
+}
 int index(int i, int j){
 		return i+j*nPt;
 }
@@ -566,17 +588,18 @@ TCanvas* showStack(TString name, bool isHI , float line, float x1, float x2, flo
 		return (TCanvas*) cm;
 }
 
-void showClosure(TString name, float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h2, TString opt="binomialRatio", bool isHI = 0){
+void showClosure(TString name, bool isHI , float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h2, TString opt="binomialRatio"){
 		float cmax;
 		float cmin;
 		int ncol = 3, nrow = 2;
 		if( isHI ) {ncol= 6; nrow = 2;}
+		int ncent = isHI ? nCent: 1;
 		auto tl = new TLine(); tl->SetLineStyle(2);
 		auto leg = new TLegend(.55, .57, .95, .77); leg->SetLineColor(0);
 		auto ratio = binary_operation<TH1D>(name+"_ratio", h1, h2, opt);
 		auto tx = new TLatex();  tx->SetTextSize(.07);
 		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<nCent; ++j){
+				for(int j=0; j<ncent; ++j){
 						cmax=h1[index(i,j)]->GetMaximum();
 						float holder = h2[index(i,j)]->GetMaximum();
 						if(cmax< holder)  cmax = holder ;
@@ -590,7 +613,7 @@ void showClosure(TString name, float x1, float x2, float y1, float y2, TString l
 		}
 		auto df = new doublePanelFig(name+"_df", "", nrow, ncol, 0.4);
 		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<nCent; ++j){
+				for(int j=0; j<ncent; ++j){
 						h1[i+nPt*j]->SetLineColor(kAzure+2);
 						h1[i+nPt*j]->SetMarkerColor(kAzure+2);
 						h2[i+nPt*j]->SetLineColor(kRed+1);
@@ -610,11 +633,23 @@ void showClosure(TString name, float x1, float x2, float y1, float y2, TString l
 						ratio[i+nPt*j]->SetMarkerColor(kBlue+3);
 						ratio[i+nPt*j]->SetAxisRange(y1, y2, "Y");
 						ratio[i+nPt*j]->SetAxisRange(x1, x2, "X");
-						df->addHist(ratio[i+nPt*j], i/3+1,i%3+1 , 1);
-						df->CD(i/3+1,i%3+1, 1);
-						tl->DrawLine(x1, 1, x2, 1);
-						df->CD(i/3+1,i%3+1, 0);
-						tx->DrawLatexNDC(0.2, 0.87, track_label[i]);
+						if(isHI){
+								df->addHist(h1[i+nPt*j], j+1,i+1 );
+								df->addHist(h2[i+nPt*j], j+1,i+1 );
+								df->addHist(ratio[i+nPt*j], j+1,i+1 , 1);
+								df->CD(j+1,i+1, 1);
+								tl->DrawLine(x1, 1, x2, 1);
+								df->CD(j+1,i+1, 0);
+								tx->DrawLatexNDC(0.2, 0.87, track_label[i]+"; "+cent_label[j]);
+						} else {
+								df->addHist(h1[i+nPt*j], i/3+1,i%3+1 );
+								df->addHist(h2[i+nPt*j], i/3+1,i%3+1 );
+								df->addHist(ratio[i+nPt*j], i/3+1,i%3+1 , 1);
+								df->CD(i/3+1,i%3+1, 1);
+								tl->DrawLine(x1, 1, x2, 1);
+								df->CD(i/3+1,i%3+1, 0);
+								tx->DrawLatexNDC(0.2, 0.87, track_label[i]);
+						}
 				}
 		}
 		leg->AddEntry(h1[0], l1 );
@@ -624,15 +659,15 @@ void showClosure(TString name, float x1, float x2, float y1, float y2, TString l
 		df->SaveAs(figDumpPath+name);
 }
 
-void showClosure_syst(TString name, bool isHI , float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h1err, TH1D** h2, TH1D** h2err, TString opt="binomialRatio"){
+void showClosure_syst(TString name, bool isHI , float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h1err, TH1D** h2, TH1D** h2err, TString opt="binomialRatio", TString opt2= "ratio"){
 		float cmax;
 		float cmin;
 		int ncol = 3, nrow = 2;
 		if( isHI ) {ncol= 6; nrow = 2;}
 		auto tl = new TLine(); tl->SetLineStyle(2);
-		auto leg = new TLegend(.55, .57, .95, .77); leg->SetLineColor(0);
+		auto leg = new TLegend(.45, .5, .95, .77); leg->SetLineColor(0);
 		auto ratio = binary_operation<TH1D>(name+"_ratio", h1, h2, opt);
-		auto ratio_err = binary_operation<TH1D>(name+"_ratio_err", h1err, h2err, "ratio");
+		auto ratio_err = binary_operation<TH1D>(name+"_ratio_err", h1err, h2err, opt2);
 		auto tx = new TLatex();  tx->SetTextSize(.07);
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){

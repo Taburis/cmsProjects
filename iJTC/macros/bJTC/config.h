@@ -24,6 +24,7 @@ TString str_gg_v2 = dataPath + "bJTC_GenGen_5TeV_25mix_csvV2_drCorr_12June18.roo
 TString str_gr_v2 = dataPath + "bJTC_GenRec_5TeV_25mix_csvV2_drCorr_8June18.root";
 
 inputSet p6gg, p6gr, p6rg, p6rr, p6gg2, p6gr2, ppData;
+inputSet phgg;
 
  
 TF1 **tagCorr;
@@ -51,6 +52,11 @@ void config(){
 		p6gg2.path = str_gg_v2;
 		p6gg2.isRecoJet = 0;
 		p6gg2.isRecoTk = 0;
+
+		phgg.path = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/PbPb/bJTC_PH_GenGen_5TeV_25mix_csvV1_noCorr_24June18.root";
+		phgg.isHi = 1;
+		phgg.isRecoJet = 0;
+		phgg.isRecoTk = 0;
 }
 
 TString tpname(inputSet &iset){

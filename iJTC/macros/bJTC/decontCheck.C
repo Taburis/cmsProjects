@@ -1,11 +1,12 @@
 
 #ifndef standardSequence_H
 #include "standardSequence.C"
+#include "syst_utility.h"
 #endif
 
-void doCheck(inputSet &iset, float purity, bool isNumber = 1, bool isHI = 0){
+void doCheck(inputSet &iset, float purity, bool isNumber = 1){
 
-		TString prefix = isHI ? "PH_": ""; 
+		TString prefix = iset.isHi ? "PH_": ""; 
 		readInput(iset);
 		TH2D** rs_tg, **rs_tt, **rs_in;
 		if(isNumber){
@@ -19,9 +20,11 @@ void doCheck(inputSet &iset, float purity, bool isNumber = 1, bool isHI = 0){
 		}
 		TString label = tpname(iset), endname = tpname(iset);
 		if(!isNumber) label+="_pTweighted";
+		auto deta_rs_tt = projX("deta_rs_tt", rs_tt);
 		auto dr_tt = getDr("dr_tt", rs_tt);
+		auto dr_tt_err = getDrErr("dr_tt_err", dr_tt, deta_rs_tt, 0);
 		auto dr_before= getDr("dr_before",rs_tg);
-		showClosure("decontCheck/"+prefix+"dr_beforeDecont_"+label+".pdf", 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_before, dr_tt);
+		showClosure("decontCheck/"+prefix+"dr_beforeDecont_"+label+".pdf", iset.isHi, 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_before, dr_tt);
 
 		scale<TH2D>(rs_in, 1-purity);
 		//auto rs_pur = binary_operation<TH2D>("raw_sig_pur", rs_tg, rs_in, "diff");
@@ -35,12 +38,19 @@ void doCheck(inputSet &iset, float purity, bool isNumber = 1, bool isHI = 0){
 						}
 				}
 		}
+		auto deta_rs_pur = projX("deta_rs_pur", rs_pur);
 
 		auto dr_pur= getDr("dr_pur",rs_pur);
+		auto dr_pur_err= getDrErr("dr_pur_err",dr_pur, deta_rs_pur , 0);
 
-		showClosure("decontCheck/"+prefix+"dr_afterDecont_"+label+".pdf", 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
+		//showClosure("decontCheck/"+prefix+"dr_afterDecont_"+label+".pdf", iset.isHi, 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
+		showClosure_syst("decontCheck/"+prefix+"dr_afterDecont_"+label+".pdf", iset.isHi, 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_pur_err,dr_tt, dr_tt_err, "binomialRatio", "binomialRatio");
 		free<TH1D>(dr_tt);
+		free<TH1D>(deta_rs_tt);
+		free<TH1D>(deta_rs_pur);
+		free<TH1D>(dr_tt_err);
 		free<TH1D>(dr_pur);
+		free<TH1D>(dr_pur_err);
 		free<TH1D>(dr_before);
 		free<TH2D>(rs_tg);
 		free<TH2D>(rs_in);
@@ -54,8 +64,12 @@ void decontCheck(){
 	//	readInput(p6gr);
 	//	readInput(p6rr);
 	//	readInput(p6rg);
+	/*
 		doCheck(p6gg, 0.7, 0);
 		doCheck(p6gg, 0.7, 1);
+		doCheck(phgg, 0.7, 0);
+		doCheck(phgg, 0.7, 1);
+		*/
 		doCheck(p6gr, 0.7, 0);
 		doCheck(p6gr, 0.7, 1);
 		doCheck(p6rg, 0.7, 0);
@@ -82,7 +96,7 @@ TH1D** decontamination2(inputSet &iset){
 		auto dr_pur= getDr("dr_pur",rs_tg);
 		//		auto dr_tb= getDr("dr_tb",rs_tb);
 		auto ratio1 = binary_operation<TH1D>("ratio1", dr_pur, dr_tt, "binomialRatio");
-		showClosure("dr_tag_tt_"+endname+".pdf", 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
+		showClosure("dr_tag_tt_"+endname+".pdf", iset.isHi, 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
 		//		showPlot("drRatio_before_decont", 0, 1, 0, 0.99, 0.5, 1.5, 1, ratio);
 
 		float purity = 0.7;
@@ -97,7 +111,7 @@ TH1D** decontamination2(inputSet &iset){
 		auto ratio2 = binary_operation<TH1D>("ratio2", dr_pur, dr_tt, "binomialRatio");
 		showPlot("drRatio_before_after_decont_"+endname+".gif", 0, 1, 0, 0.99, 0.5, 1.5, 2, ratio1, ratio2);
 
-		showClosure("dr_afterDecont_"+endname+".pdf", 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
+		showClosure("dr_afterDecont_"+endname+".pdf", iset.isHi, 0, .99, 0.5, 1.5, "decont.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
 		//showPlot("drOverlay_decont_ttb", 0, 0, 0, 0.99, 0.5, -1.5, 2, dr_tt, dr_pur);
 		free<TH1D>(dr_tt);
 		free<TH1D>(dr_pur);

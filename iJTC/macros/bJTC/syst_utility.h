@@ -65,12 +65,16 @@ TH1D* get_bkg_dr_err(TString name, TH1D* h1,TH1D* dr, bool withbg = 1){
 		float out_ave= (h1->GetBinContent(l2)+h1->GetBinContent(r2))/2;
 		float me_err = max(fabs(left_ave-mean), fabs(right_ave-mean));
 		float bg_err = max(fabs(in_ave-mean), fabs(out_ave-mean));
+		if(!withbg){
+			   	me_err = fabs(left_ave-right_ave)/2;
+			   	bg_err = fabs(in_ave-out_ave)/2;
+		}
 		for(int k=1; k< ndr+1; ++k){
 				float ring =TMath::Pi()*(pow(herr->GetBinLowEdge(k)+herr->GetBinWidth(k),2)-
 								pow(herr->GetBinLowEdge(k),2))/2/herr->GetBinWidth(k);
-				float err;
-				if(withbg) err = ring*pow(bg_err*bg_err+me_err*me_err, 0.5);
-				else err	= ring*me_err;
+				float err = ring*pow(bg_err*bg_err+me_err*me_err, 0.5);
+			//	if(withbg) err = ring*pow(bg_err*bg_err+me_err*me_err, 0.5);
+			//	else err	= ring*me_err;
 				herr->SetBinError(k, err);
 				herr->SetBinContent(k, dr->GetBinContent(k));
 		}
