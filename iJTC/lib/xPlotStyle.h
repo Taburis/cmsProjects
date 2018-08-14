@@ -25,6 +25,7 @@ class mCanvasLoose : public mCanvasBase {
 				void drawHist(TH1* h, int i, int j, TString opt ="");
 				void drawHist(TH1* h, int i, TString opt ="");
 				void histStyle(TH1* h);
+				void setStyle(TH1* h, float msize, Color_t color, int mstyle =20);
 		public:
 				TLine *tl; TBox *box;
 };
@@ -38,6 +39,13 @@ mCanvasLoose::mCanvasLoose(const char *name, const char *title , int x, int y , 
 		this->Divide(ncol,nrow);
 		tl = new TLine();
 		box = new TBox(); box->SetFillColorAlpha(kGray+1, 0.5);
+}
+
+void mCanvasLoose::setStyle(TH1* h, float msize, Color_t color, int mstyle){
+		h->SetMarkerSize(msize);
+		h->SetMarkerColor(color);
+		h->SetLineColor(color);
+		h->SetMarkerStyle(mstyle);
 }
 
 void mCanvasLoose::drawHist(TH1* h, int i, int j, TString opt){
@@ -61,6 +69,8 @@ void mCanvasLoose::histStyle(TH1 *h){
 		h->GetXaxis()->SetTitleOffset(0.8);
 		h->GetXaxis()->SetTitleSize(0.085);
 		h->GetYaxis()->SetTitleSize(0.09);
+		h->GetXaxis()->SetNdivisions(505);
+		h->SetTitle("");
 }
 
 class doublePanelFig : public mCanvasBase {

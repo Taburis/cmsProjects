@@ -10,8 +10,7 @@ class TH2DBlock : public histPlayer2D<TH2D>{
 				~TH2DBlock(){}
 };
 
-TH2DBlock::TH2DBlock(TString hname, int n1, int n2, int nx, double x1, double x2, int ny, double y1, double y2):
-		histPlayer2D<TH2D>()
+TH2DBlock::TH2DBlock(TString hname, int n1, int n2, int nx, double x1, double x2, int ny, double y1, double y2): histPlayer2D<TH2D>()
 {
 		name = hname;
 		hist = new TH2D*[n1*n2];

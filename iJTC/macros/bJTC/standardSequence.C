@@ -3,6 +3,23 @@
 #define standardSequence_H
 #include "config.h"
 
+void addDr(TString name, TString prefix, TString path){
+		auto f = TFile::Open(path, "update");
+		auto sig = read_flatten<TH2D>(f, "signal_"+prefix+"_noCorr");
+		auto sig_pt = read_flatten<TH2D>(f, "signal_"+prefix+"_pTweighted_noCorr");
+		auto rs  = read_flatten<TH2D>(f, "sig_mix_corrected_"+prefix+"_noCorr");
+		auto rs_pt = read_flatten<TH2D>(f, "sig_mix_corrected_"+prefix+"_pTweighted_noCorr");
+		auto dr = getDr(name+"_sig_nc", sig);
+		auto dr_pt = getDr(name+"_sig_pTweighted_nc", sig_pt);
+		auto dr_rs_pt = getDr(name+"_rs_pTweighted_nc", rs_pt);
+		auto dr_rs  = getDr(name+"_rs_nc", rs);
+		dumpHists<TH1D>(dr);
+		dumpHists<TH1D>(dr_pt);
+		dumpHists<TH1D>(dr_rs_pt);
+		dumpHists<TH1D>(dr_rs);
+		f->Close();
+}
+
 void pullSignal(TString fname, TH2D** raw_sig, TH2D** mixing, float sidemin=1.5, float sidemax=2.5, bool doSeagull=0){
 		cout<<"pulling singal for "<<fname;
 		JTCSignalProducer *sp1[nPt*nCent];
@@ -41,9 +58,9 @@ void pullSignal(TString fname, TString name, histCase &h, float sidemin=1.5, flo
 }
 
 
-TF1* fit0(TString name, TH1D* h){
-		TF1 *f = new TF1(name, "x*[1]+[0]", 0, 1);
-		h->Fit(f, "", "", 0, 1);
+TF1* fit0(TString name, TH1D* h, float xmin, float xmax){
+		TF1 *f = new TF1(name, "[0]*x+[1]", 0, 1);
+		h->Fit(f, "", "", xmin, xmax);
 		return f;
 }
 
@@ -91,18 +108,7 @@ TF1** doFitting(TString name, TH1D** h){
 						mc->cd(i+1);
 						TString tmp = track_label[i];
 						tx->DrawLatexNDC(0.02,0.93, tmp); 
-						if(i==2)
-								tf[i+nPt*j] = fit4(name+Form("_%d_%d",i,j), h[i+nPt*j]);
-						else if(i==3) 
-								tf[i+nPt*j] = fit5(name+Form("_%d_%d",i,j), h[i+nPt*j]);
-						else if(i==4) 
-								tf[i+nPt*j] = fit4(name+Form("_%d_%d",i,j), h[i+nPt*j]);
-						else if(i<4)
-								tf[i+nPt*j] = fit4(name+Form("_%d_%d",i,j), h[i+nPt*j]);
-						else if(i<5)
-								tf[i+nPt*j] = fit3(name+Form("_%d_%d",i,j), h[i+nPt*j]);
-						else 
-								tf[i+nPt*j] = fit3(name+Form("_%d_%d",i,j), h[i+nPt*j]);
+						tf[i+nPt*j] = fit0(name+Form("_%d_%d",i,j), h[i+nPt*j], 0, 0.2);
 				}
 		}
 		mc->SaveAs(figDumpPath+name+"plot_"+name+".gif");
@@ -147,67 +153,72 @@ void applyBiasCorrection(TH1D** h, bool isNumber =1, bool hist=0){
 						}
 				}
 		}
-//cout<<tagCorr[0]->GetName()<<endl;
-//divideTF1(h, tagCorr);
-//	tagf->Close();
-return;
+		//cout<<tagCorr[0]->GetName()<<endl;
+		//divideTF1(h, tagCorr);
+		//	tagf->Close();
+		return;
 }
 
-TH1D** applyTkCorrection(TString name, TH1D** h, bool isNumber =1){
-		auto tkf = TFile::Open(dataDumpPath+"ppCSVv1TkCorr.root");
-		TH1D **tkCorr;
-		if(isNumber) tkCorr= read_flatten<TH1D>(tkf, "tkCorr");
-		else tkCorr= read_flatten<TH1D>(tkf, "tkCorr_pTweighted");
-		cout<<"adding tk correction..."<<endl;
-		auto trk = binary_operation<TH1D>(name, h, tkCorr, "ratio");
-		//	tkf->Close();
-		return trk;
-}
-
-TH1D** applyResidual(TString name, TH1D** h, bool isNumber =1){
-		cout<<"adding residual correction..."<<endl;
-		auto resf = TFile::Open(dataDumpPath+"ppCSVv1Residual.root");
-		if(isNumber) resCorr= read_flatten<TH1D>(resf, "residual");
-		else resCorr= read_flatten<TH1D>(resf, "residual_pTweighted");
-		auto dr = binary_operation<TH1D>(name, h, resCorr, "ratio");
-		//	resf->Close();
-		return dr;
-}
-
-TH2D** decontamination(inputSet &iset, float purity, bool isNumber = 1){
-		cout<<"decontamination processing.."<<endl;
-		readInput(iset);
-		TString endname = tpname(iset);
-		TH2D** rs_tg, **rs_in;
-		if(isNumber){
-				rs_tg = doMixingCorr("step2_sig_taggedB", iset.tg.sig_raw, iset.tg.mixing_raw, 0);
-				rs_in = doMixingCorr("step2_sig_incl", iset.in.sig_raw, iset.in.mixing_raw, 1);
-		}
-		else {
-				rs_tg = doMixingCorr("step2_sig_taggedB_pTweighted", iset.tg.sig_pTweighted_raw, iset.tg.mixing_raw, 0);
-				rs_in = doMixingCorr("step2_sig_incl_pTweighted", iset.in.sig_pTweighted_raw, iset.in.mixing_raw, 1);
-		}
-
-		scale<TH2D>(rs_in, 1-purity);
-		//auto rs_pur = binary_operation<TH2D>("raw_sig_pur", rs_tg, rs_in, "diff");
-		TH2D** rs_pur = new TH2D*[nPt*nCent]; 
+TH1D** decontamination(TString name, TH1D** sig, TH1D** in, float pur){
+		auto dr_co= copy<TH1D>("dr_co", in);
+		scale(dr_co, 1-pur);
+		TH1D** dr = new TH1D*[nPt*nCent];
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){
-						cout<<i<<", "<<j<<endl;
-						rs_pur[i+nPt*j]=(TH2D*) rs_tg[i+nPt*j]->Clone(Form("raw_sig_pur_%d_%d",i,j));
-						if(i<nPt-1){ rs_pur[i+nPt*j]->Add(rs_in[i+nPt*j], -1);
-								rs_pur[i+nPt*j]->Scale(1.0/purity);
-						}
+						dr[i+nPt*j]=(TH1D*)sig[i+nPt*j]->Clone(name+Form("_%d_%d", i,j));
+						//if(i==nPt-1) continue;
+						dr[i+nPt*j]->Add(dr_co[i+nPt*j], -1);
+						dr[i+nPt*j]->Scale(1.0/pur);
 				}
 		}
-
-		//		scale(rs_pur, 1.0/purity);
-
-		if(isNumber) endname+="_pTweighted";
-		auto sig_pur = doBkgSub("signal_"+endname, rs_pur);
-
-		cout<<"decontamination done"<<endl;
-		return sig_pur;
+		free<TH1D>(dr_co);
+		return dr;
 }
+TH2D** decontamination(TString name, TH2D** _sig, TH2D** in, float pur){
+		auto sig_co= copy<TH2D>("sig_co", in);
+		scale(sig_co, 1-pur);
+		TH2D** sig = new TH2D*[nPt*nCent];
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						sig[i+nPt*j]=(TH2D*)_sig[i+nPt*j]->Clone(name+Form("_%d_%d", i,j));
+//						if(i==nPt-1) continue;
+						sig[i+nPt*j]->Add(sig_co[i+nPt*j], -1);
+						sig[i+nPt*j]->Scale(1.0/pur);
+				}
+		}
+		free<TH2D>(sig_co);
+		return sig;
+}
+void applyTkCorrection(TString name, TString tkEffFile){
+		auto tkf = TFile::Open(dataDumpPath+tkEffFile);
+		auto file = TFile::Open(dataDumpPath+name, "update");
+		auto tkCorr= read_flatten<TH1D>(tkf, "trackEff_smoothed");
+		auto h = read_flatten<TH1D>(file, "dr_residualCorrected");
+		auto hpt = read_flatten<TH1D>(file, "dr_pTweighted_residualCorrected");
+		cout<<"applying tk correction..."<<endl;
+		auto h_corr= binary_operation<TH1D>("dr_final", h, tkCorr, "ratio");
+		auto h_pt_corr= binary_operation<TH1D>("dr_final_pTweighted", hpt, tkCorr, "ratio");
+		file->cd();
+		dumpHists<TH1D>(h_corr);
+		dumpHists<TH1D>(h_pt_corr);
+		file->Close();
+}
+
+void applyResidual(TString name, TString resfname ){
+		auto resf = TFile::Open(dataDumpPath+resfname);
+		auto file = TFile::Open(dataDumpPath+name, "update");
+		cout<<"adding residual correction..."<<endl;
+		auto resCorr= read_flatten<TH1D>(resf, "bias");
+		auto resCorr_pt= read_flatten<TH1D>(resf, "bias_pt");
+		auto h = read_flatten<TH1D>(file, "dr_pur");
+		auto hpt = read_flatten<TH1D>(file, "dr_pur_pTweighted");
+		auto dr = binary_operation<TH1D>("dr_residualCorrected", h, resCorr, "ratio");
+		auto dr_pt = binary_operation<TH1D>("dr_pTweighted_residualCorrected", h, resCorr_pt, "ratio");
+		file->cd();
+		dumpHists<TH1D>(dr);
+		dumpHists<TH1D>(dr_pt);
+		file->Close(); 
+}
+
 #endif
 

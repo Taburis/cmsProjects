@@ -1,26 +1,28 @@
 
 //#include "../../lib/import_pf_config.h"
-#include "../../lib/JTCSignalProducer.h"
-#include "../../lib/hist_jtc.h"
-#include "../../lib/stackHist.h"
+#include "JTCSignalProducer.h"
 //#include "../../lib/JTCSkimer.h"
 #ifndef xPlotStyle_H
-#include "../../lib/xPlotStyle.h"
+#include "xPlotStyle.h"
 #endif
-#ifndef utility_H
-#define utility_H
-#endif
+#ifndef jtc_macro_utility_H
+#define jtc_macro_utility_H
+
+int nPt = 6;
+int nCent=2;
+int nrow1= 2, ncol1= 3; // for pp
+int nrow2= 4, ncol2 = 6; // for pb
 
 TString dataDumpPath = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/myCorrelation/trunk/";
 TString figDumpPath  = "/Users/tabris/cmsProjects/iJTC/macros/bJTC/fig_newWay/";
-TString track_label[] = {"1 < p_{T}^{track} < 2 GeV",
-		"2 < p_{T}^{track} < 3 GeV", "3 < p_{T}^{track} < 4 GeV",
-		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
-		"p_{T}^{track} > 12 GeV"};
-TString cent_label[]={"Cent. 0-30%", "Cent. 30-100%"};
+TString *track_label;
+TString *cent_label;
+//TString track_label[] = {"1 < p_{T}^{track} < 2 GeV",
+//		"2 < p_{T}^{track} < 3 GeV", "3 < p_{T}^{track} < 4 GeV",
+//		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
+//		"p_{T}^{track} > 12 GeV"};
+//TString cent_label[]={"Cent. 0-30%", "Cent. 30-100%"};
 Color_t color_vec[6] = {kBlue+1, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack};
-const int nPt = 6;
-const int nCent=2;
 
 
 //TLatex* tex = new TLatex(); 
@@ -97,13 +99,25 @@ T* index(T** h, int ptb, int centb){
 }
 
 template<typename T>
-void set_name(TString name, T** h){
+T** read_flatten_duplicate(TFile* f, TString hcap, TString endcap = ""){
+		T** h = new T*[nPt*nCent];
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){
-						h[i+nPt*j]->SetName(name+Form("_%d_%d",i,j));
+						h[i+nPt*j] = (T*) f->Get(hcap+Form("_%d", i)+endcap)->Clone(hcap+Form("_dup_%d_%d", i, j));
 				}
 		}
-		return;
+		return h;
+}
+
+template<typename T>
+T** read_flatten_nocent(TFile* f, TString hcap){
+		T** h = new T*[nPt*nCent];
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						h[i+nPt*j] = (T*) f->Get(hcap+Form("_%d", i))->Clone(hcap+Form("_dup_%d_%d", i, j));
+				}
+		}
+		return h;
 }
 
 template<typename T>
@@ -113,7 +127,7 @@ T** read_flatten(TFile* f, TString hcap){
 				for(int j=0; j<nCent; ++j){
 						h[i+nPt*j] = (T*) f->Get(hcap+Form("_%d_%d", i, j));
 						//cout<<hcap+Form("_%d_%d", i, j)<<endl;;
-						cout<<h[i+nPt*j] ->GetName()<<endl;;
+						//cout<<h[i+nPt*j] ->GetName()<<endl;;
 				}
 		}
 		return h;
@@ -250,12 +264,12 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 		cout<<"start drawing...."<<endl;
 		va_list ap;
 		va_start(ap, n_args);
-		int ncol = 3, nrow = 2;
-		if( isHI ) {ncol= 6; nrow = 2;}
+		int ncol = ncol1, nrow = nrow1;
+		if( isHI ) {ncol= ncol2; nrow = nrow2;}
 		auto cm = new mCanvasLoose("c_"+name, "", nrow, ncol);
 		auto tx = new TLatex();  tx->SetTextSize(.06);
 		auto tl = new TLine(); tl->SetLineStyle(2);
-		int ncent = isHI ? 2: 1;
+		int ncent = isHI ? ncol2: 1;
 		TH1D** h;
 		TString tmp;
 		float min[nPt*nCent];
@@ -266,10 +280,18 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 						max[i+nPt*j] = 0;
 				}
 		}
-		for(int k=0; k<n_args; ++k){
+
+		h = va_arg(ap, TH1D**);
+		for(int i=0; i<nPt ; ++i){
+				for(int j=0; j<nCent; ++j){
+						max[i+j*nPt] = h[index(i,j)]->GetMaximum();
+						min[i+j*nPt] = h[index(i,j)]->GetMinimum();
+				}
+		}
+		for(int k=1; k<n_args; ++k){
 				h = va_arg(ap, TH1D**);
 				for(int i=0; i<nPt ; ++i){
-						for(int j=0; j<ncent; ++j){
+						for(int j=0; j<nCent; ++j){
 								float holder = h[index(i,j)]->GetMaximum();
 								if(max[i+j*nPt]< holder)  max[i+j*nPt] = holder ;
 								holder = h[index(i,j)]->GetMinimum();
@@ -284,9 +306,9 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 				for(int i=0; i<nPt ; ++i){
 						for(int j=0; j<ncent; ++j){
 								//cout<<i<<", "<<j<<endl;
-								float grid = (max[i+j*nPt]-min[i+j*nPt])/20;
+								float grid = (max[i+j*nPt]-min[i+j*nPt])/16;
 
-								cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
+								//cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
 								h[index(i,j)]->SetLineColor(color_vec[k]);
 								h[index(i,j)]->SetMarkerStyle(20);
 								h[index(i,j)]->SetMarkerSize(0.3);
@@ -301,14 +323,14 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 										//cout<<i+1<<endl;
 										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 										tl->DrawLine(x1, line, x2, line);
-								}
-								else { 
-										cm->drawHist(h[index(i,j)], j+1, i+1);
-										cout<<"i = "<<i<<", j = "<<j<<": "<<h[index(i,j)]->GetName()<<endl;
-										cm->CD(j+1, i+1);
+								} else { 
+										cm->drawHist(h[index(i,j)], i+1, 4-j);
+		//								cout<<"i = "<<i<<", j = "<<j<<": "<<h[index(i,j)]->GetName()<<endl;
+										cm->CD(i+1, 4-j); //gPad->SetLogy();
 										//gPad->SetLogy();
 										tmp = track_label[i]+"; "+cent_label[j];
 										tx->DrawLatexNDC(0.1, 0.93, tmp);
+										if(min[i+j*nPt]-grid< line && max[i+j*nPt]+grid> line) tl->DrawLine(x1, line, x2, line);
 								}
 						}
 				}
@@ -450,15 +472,16 @@ T** copy(TString name, T** h){
 		}
 		return hh;
 }
+
 template <typename T>
 T** copy_duplicate(TString name, T** h){
-		T** hh = new T*[nPt*nCent];
-		for(int i=0; i<nPt ; ++i){
-				for(int j=0; j<nCent ; ++j){
-						hh[i+nPt*j]=(T*)h[i]->Clone(name+Form("_%d_%d",i,j));
-				}
-		}
-		return hh;
+        T** hh = new T*[nPt*nCent];
+        for(int i=0; i<nPt ; ++i){
+                for(int j=0; j<nCent ; ++j){
+                        hh[i+nPt*j]=(T*)h[i]->Clone(name+Form("_%d_%d",i,j));
+                }
+        }
+        return hh;
 }
 
 TH2D** doMixingCorr(TString name, TH2D** h, TH2D** hmix, bool doseagull){
@@ -583,7 +606,7 @@ TCanvas* showStack(TString name, bool isHI , float line, float x1, float x2, flo
 				h = va_arg(ap, TH1D**);
 				for(int i=0; i<nPt ; ++i){
 						for(int j=0; j<ncent; ++j){
-								cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
+								//cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
 								if(y1<y2) h[index(i,j)]->SetAxisRange(y1, y2,"Y");
 								h[index(i,j)]->SetAxisRange(x1, x2,"X");
 								h[index(i,j)]->SetLineColor(color_vec[k]);
@@ -602,7 +625,7 @@ TCanvas* showStack(TString name, bool isHI , float line, float x1, float x2, flo
 								//tl->DrawLine(x1, line, x2, line);
 						}
 						else { 
-								cout<<"i = "<<i<<", j = "<<j<<": "<<h[index(i,j)]->GetName()<<endl;
+								//cout<<"i = "<<i<<", j = "<<j<<": "<<h[index(i,j)]->GetName()<<endl;
 								cm->CD(i+1, 4-j);
 								gPad->SetLogy();
 								tmp = track_label[i]+" "+cent_label[j];
@@ -826,8 +849,8 @@ TH1D* invariant_rebin(TH1D* h, const int nbin, Double_t *newbin){
 				h->SetBinContent(i, h->GetBinContent(i)*h->GetBinWidth(i));
 				h->SetBinError(i, h->GetBinError(i)*h->GetBinWidth(i));
 		}
-		//TString name = h->GetName();
-		//name+="_rebin";
+		TString name = h->GetName();
+		name+="_rebin";
 		TH1D* htm = (TH1D*)h->Rebin(nbin, "", newbin);
 		//		delete h;
 		for(int i=1; i<htm->GetNbinsX()+1; ++i){
@@ -841,7 +864,7 @@ TH1D* invariant_rebin(TH1D* h, const int nbin, Double_t *newbin){
 TH1D** rebin_all(TString name, TH1D** h, const int nbin, Double_t *newbin){
 		TH1D** dr = new TH1D*[nPt*nCent];
 		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<1; ++j){
+				for(int j=0; j<nCent; ++j){
 						dr[i+nPt*j]=invariant_rebin( h[i+nPt*j], nbin, newbin);
 				}
 		}
@@ -872,42 +895,9 @@ TH1D** projectionX(TString name, TH2D** h){
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<nCent; ++j){
 						projx[i+nPt*j] =(TH1D*) h[i+nPt*j]->ProjectionX();
-						projx[i+nPt*j]->SetName(name+Form("_%d_%d", i, j));
 				}
 		}
 		return projx;
-
-}
-
-TH1D** projectionX(TString name, TH2D** h, float y1, float y2, float n, TString lab){
-		TH1D** projx = new TH1D*[nPt*nCent];
-		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<nCent; ++j){
-						int n1 = h[i+nPt*j]->GetYaxis()->FindBin(y1);
-						int n2 = h[i+nPt*j]->GetYaxis()->FindBin(y2);
-						projx[i+nPt*j] =(TH1D*) h[i+nPt*j]->ProjectionX(name+Form("_%d_%d", i, j), n1, n2, "B");
-						projx[i+nPt*j]->GetXaxis()->SetTitle(lab);
-						projx[i+nPt*j]->Rebin(n);
-						projx[i+nPt*j]->Scale(1.0/n);
-				}
-		}
-		return projx;
-
-}
-
-TH1D** projectionY(TString name, TH2D** h, float y1, float y2, float n, TString lab){
-		TH1D** projy = new TH1D*[nPt*nCent];
-		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<nCent; ++j){
-						int n1 = h[i+nPt*j]->GetXaxis()->FindBin(y1);
-						int n2 = h[i+nPt*j]->GetXaxis()->FindBin(y2);
-						projy[i+nPt*j] =(TH1D*) h[i+nPt*j]->ProjectionY(name+Form("_%d_%d", i, j), n1, n2, "B");
-						projy[i+nPt*j]->GetXaxis()->SetTitle(lab);
-						projy[i+nPt*j]->Rebin(n);
-						projy[i+nPt*j]->Scale(1.0/n);
-				}
-		}
-		return projy;
 
 }
 
@@ -1047,22 +1037,4 @@ TCanvas* showPanel_syst(TString name, bool isHI , float x1, float x2, float y1, 
 
 }
 
-void ring_corr( TH2D** h, TH1D** corr, float drmax = 1){
-		for(int i=0; i<nPt; ++i){
-				for(int j=0; j<nCent; ++j){
-						for(int k=1; k<h[i+j*nPt]->GetNbinsX()+1; ++k){
-								for(int l=1; l<h[i+j*nPt]->GetNbinsY()+1; ++l){
-										float deta = h[i+j*nPt]->GetXaxis()->GetBinCenter(k);
-										float dphi = h[i+j*nPt]->GetYaxis()->GetBinCenter(l);
-										float dr = pow(deta*deta+dphi*dphi, 0.5);
-										if(dr > drmax) continue;
-										int nn = corr[i+j*nPt]->GetXaxis()->FindBin(dr);
-										h[i+j*nPt]->SetBinContent(k,l, h[i+j*nPt]->GetBinContent(k,l)/corr[i+j*nPt]->GetBinContent(nn));
-								}
-						}
-				}
-		}	
-		return ;
-}
-
-
+#endif

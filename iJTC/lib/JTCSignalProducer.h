@@ -26,10 +26,12 @@ Double_t mix_pol2(Double_t *x, Double_t *par){
 		if(x[0] < 0.5 && x[0] > -0.5) return par[0];
 //		else if( x[0]<-0.3 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]*x[0]+par[3]*x[0];
 //		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]*x[0]+par[3]*x[0];
-		else if( x[0]<-0.3 ) return par[0]+par[1]*x[0]*x[0]+par[2]*x[0];
-		else return par[0]+par[1]*x[0]*x[0]+par[2]*x[0];
-//		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
-//		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+		// 3 parameters correct the and the skewness + seagull (second order) 
+//		else if( x[0]<-0.3 ) return par[0]+par[1]*x[0]*x[0]+par[2]*x[0];
+//		else return par[0]+par[1]*x[0]*x[0]+par[2]*x[0];
+		// 4 parameters correct the skewness + seagull (first + second order)
+		else if( x[0]<-0.5 ) return -par[1]*(x[0]+0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
+		else return par[1]*(x[0]-0.5)+par[0]+par[2]*x[0]+par[3]*x[0]*x[0];
 	//	else if( x[0]<-0.5 ) return par[0]+par[1]*pow(x[0]+0.5,2);
 	//	else return par[1]*(x[0]-0.5)+par[0]+par[1]*pow(x[0]-0.5,2);
 }
@@ -90,16 +92,17 @@ class JTCSignalProducer :public signalFactoryBase {
 };
 
 void JTCSignalProducer::pullSeagull(TH2D* hsig){
-		TF1 *func = new TF1("func", mix_pol2, -3., 3., 3);
+		TF1 *func = new TF1("func", mix_pol2, -3., 3., 4);
 	//	TF1 *func = new TF1("func", "pol2", -2.5, 2.5);
 		int n1 = hsig->GetYaxis()->FindBin(1.4);
 		int n2 = hsig->GetYaxis()->FindBin(1.799);
 		TH1D *htm = (TH1D*) hsig->ProjectionX("side_for_fitting", n1, n2); 
-		htm->Scale(1.0/(n2-n1));
+		htm->Scale(1.0/(n2-n1+1));
 		htm->Rebin(4); htm->Scale(0.25);
 //		TH1D *htm1=(TProfile*)invariantRebin((TH1*)htm, "tet_fitted", 21, etabin);
 		float mean = getMean(htm, -0.5, 0.5);
-		func->SetParameters(mean, 0, 0);
+//		func->SetParameters(mean, 0, 0); // for 3 parameters 
+		func->SetParameters(mean, 0, 0.1, 0.1); // for 4 parameters 
 		htm->Fit(func, "", "", -3., 2.99);
 		mean = func->GetParameter(0);
 		//htm1->Fit(func);

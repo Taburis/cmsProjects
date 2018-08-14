@@ -314,6 +314,8 @@ void signalFactoryBase::doDrPhaseCorrection(TH2D* signal, TH1D* h1){
 }
 
 TH1* signalFactoryBase::invariantRebin(TH1* h1, TString name , int n, const Double_t * bins){
+		// rebin the histogram based on the bins given in the parameter
+		if(n == h1->GetNbinsX() ) return h1;
 		TH1* h=(TH1*) h1->Clone("tmp");
 		//input h needs to be invariant 
 		for(int i=1; i<h->GetNbinsX()+1; ++i){

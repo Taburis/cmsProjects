@@ -69,15 +69,17 @@ void decontCheck(){
 		doCheck(p6gg, 0.7, 1);
 		doCheck(phgg, 0.7, 0);
 		doCheck(phgg, 0.7, 1);
-		*/
 		doCheck(p6gr, 0.7, 0);
 		doCheck(p6gr, 0.7, 1);
 		doCheck(p6rg, 0.7, 0);
 		doCheck(p6rg, 0.7, 1);
 		doCheck(p6rr, 0.7, 0);
 		doCheck(p6rr, 0.7, 1);
+		*/
+		doCheck(p6rrCSV85, 0.48, 0);
+		doCheck(p6rrCSV85, 0.48, 1);
 }
-
+/*
 TH1D** decontamination2(inputSet &iset){
 
 		readInput(iset);
@@ -99,7 +101,7 @@ TH1D** decontamination2(inputSet &iset){
 		showClosure("dr_tag_tt_"+endname+".pdf", iset.isHi, 0, .99, 0.5, 1.5, "tag.("+endname+")", "t&t ("+endname+")", dr_pur, dr_tt);
 		//		showPlot("drRatio_before_decont", 0, 1, 0, 0.99, 0.5, 1.5, 1, ratio);
 
-		float purity = 0.7;
+		float purity = 0.0;
 		scale<TH2D>(rs_in, 1-purity);
 		auto rs_pur = binary_operation<TH2D>("raw_sig_pur", rs_tg, rs_in, "diff");
 		scale(rs_pur, 1.0/purity);
@@ -139,14 +141,12 @@ void checkContaminationBias(inputSet &iset){
 		auto mix_tt = read_flatten<TH2D>(iset.path, "taggedTrueBJet_"+cap0+"_mixing_noCorr"); 
 		auto mix_in = read_flatten<TH2D>(iset.path, "inclJet_"+cap0+"_mixing_noCorr");	
 
-		/*
 		   auto rs_tg = read_flatten<TH2D>(iset.path, "taggedBJet_"+cap0); 
 		   auto rs_tt = read_flatten<TH2D>(iset.path, "taggedTrueBJet_"+cap0); 
 		   auto rs_in = read_flatten<TH2D>(iset.path, "inclJet_"+cap0);	
 		   auto mix_tg = read_flatten<TH2D>(iset.path, "taggedBJet_"+cap0); 
 		   auto mix_tt = read_flatten<TH2D>(iset.path, "taggedTrueBJet_"+cap0); 
 		   auto mix_in = read_flatten<TH2D>(iset.path, "inclJet_"+cap0);	
-		   */
 
 		auto sig_tg = doMixingCorr("step2_sig_cont", rs_tg, mix_tg, 0);
 		auto sig_tt = doMixingCorr("step2_sig_cont", rs_tt, mix_tt, 0);
@@ -175,3 +175,4 @@ void checkContaminationBias(inputSet &iset){
 		showPlot("drRatio_contOverIncl.gif", 0, 1, 0, 0.99, 0.5, 1.5, 1, ratio);
 		showStack("drStack_contOverIncl", 0, 1, 0, 0.99, 0.5, 1.5, 2, dr_raw0, dr_raw2);
 }
+*/
