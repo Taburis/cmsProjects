@@ -289,7 +289,7 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 								cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
 								h[index(i,j)]->SetLineColor(color_vec[k]);
 								h[index(i,j)]->SetMarkerStyle(20);
-								h[index(i,j)]->SetMarkerSize(0.3);
+								h[index(i,j)]->SetMarkerSize(0.5);
 								h[index(i,j)]->SetMarkerColor(color_vec[k]);
 								h[index(i,j)]->GetXaxis()->SetNdivisions(505);
 								h[index(i,j)]->SetAxisRange(x1, x2,"X");
@@ -616,7 +616,7 @@ TCanvas* showStack(TString name, bool isHI , float line, float x1, float x2, flo
 		return (TCanvas*) cm;
 }
 
-void showClosure(TString name, bool isHI , float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h2, TString opt="binomialRatio"){
+void showClosure(TString name, bool isHI , float x1, float x2, float y1, float y2, TString l1, TString l2, TH1D** h1, TH1D** h2, TString opt="binomialRatio", bool mid = 0){
 		float cmax;
 		float cmin;
 		int ncol = 3, nrow = 2;
@@ -876,7 +876,6 @@ TH1D** projectionX(TString name, TH2D** h){
 				}
 		}
 		return projx;
-
 }
 
 TH1D** projectionX(TString name, TH2D** h, float y1, float y2, float n, TString lab){
@@ -889,6 +888,7 @@ TH1D** projectionX(TString name, TH2D** h, float y1, float y2, float n, TString 
 						projx[i+nPt*j]->GetXaxis()->SetTitle(lab);
 						projx[i+nPt*j]->Rebin(n);
 						projx[i+nPt*j]->Scale(1.0/n);
+						projx[i+nPt*j]->Scale(h[0]->GetYaxis()->GetBinWidth(1));
 				}
 		}
 		return projx;
@@ -948,7 +948,7 @@ void swip_hist(TH1D** dr, float xx, float cc, float err = 0){
 				for(int j=0; j<nCent; ++j){	
 						for(int k=1; k<dr[i+j*nPt]->GetNbinsX()+1; k++){
 								if(dr[i+j*nPt]->GetBinCenter(k)<= xx)continue;
-								dr[i+j*nPt]->SetBinContent(k, cc);
+	//							dr[i+j*nPt]->SetBinContent(k, cc);
 								dr[i+j*nPt]->SetBinError  (k, err);
 						}
 				}
