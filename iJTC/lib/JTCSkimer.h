@@ -44,11 +44,6 @@ void config(){
 	fit_vz_cymbal->SetParameters(0.08,0.44,5.12,0.08,3.25,5.23);
 }
 
-// possible weight function 
-auto eff_weight_f = TFile::Open("weight.root");
-auto efficiency_hist = (TH1D*) eff_weight_f->Get("pt_weight");
-auto b_mode_weight_f = TFile::Open("b_mode_weight");
-
 class JTCSkimer{
 	public : 
 		JTCSkimer(){ 
@@ -85,7 +80,6 @@ class JTCSkimer{
 		void fillJetInfo(histCase &hc, float weight);
 		float findDrmin(float eta, float phi, vector<float> *jetpt, vector<float> *jeteta, vector<float> *jetphi);
 		void mixingSection(Long64_t voidIndex);
-		float eff_weight(float pt);
 	public: 
 		TRandom3 rand3;
 		float jer_mean=0, jer_sigma=1;
@@ -97,7 +91,6 @@ class JTCSkimer{
 		bool doWTAaxis = 0;
 		bool doDCATkCut= 0;
 		float csvCut = 0.9;
-		bool do_eff_weight  = 0;
 		//mixing config------------------------------
 		float trketamaxcut = 2.;
 		float trkPtcut = 1.0;
@@ -394,7 +387,6 @@ void JTCSkimer::write(TString name){
 
 void JTCSkimer::fillAllJetInfo(){
 	float extra = 1;
-	if(do_eff_weight) extra = eff_weight(selectedJt_pt);
 	fillJetInfo(inclCase, weights*extra);
 	if(foundTaggedBJet)fillJetInfo(taggedBCase, weights*extra);
 	if(isMC) {
@@ -491,7 +483,6 @@ void JTCSkimer::addMixingTree(TString name){
 
 void JTCSkimer::fillHist(bool isMixing){
 	float extra= 1;
-	if(do_eff_weight) extra = eff_weight(selectedJt_pt);
 	fillCase(inclCase, isMixing, weights*extra);
 	//if(!dcaCut) fillCase(inclCase, isMixing);
 	if(foundTaggedBJet)fillCase(taggedBCase, isMixing, weights*extra);
