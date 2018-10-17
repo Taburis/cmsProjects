@@ -3,6 +3,8 @@
 #ifndef xPlotStyle
 #define xPlotStyle
 
+#include "TStyle.h"
+#include "TPad.h"
 #ifndef ROOT_TCanvas
 #include "TCanvas.h"
 #endif

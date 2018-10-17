@@ -15,6 +15,10 @@
 #ifndef doublePad_H
 #include "doublePad.h"
 #endif
+#include "TMath.h"
+#include "TCanvas.h"
+#include "TLine.h"
+#include <iostream> 
 
 
 class signalFactoryBase {
@@ -234,7 +238,7 @@ TH1D* signalFactoryBase::drGeoTest(TH2D* signal, TH1D* drDist){
 				float rlow = area_ideal->GetBinLowEdge(i);
 				float width = area_ideal->GetBinWidth(i);
 				float rup = rlow + width;
-				cout<<rup<<endl;
+				std::cout<<rup<<std::endl;
 				//		drCounts->SetBinContent(i, drCounts->GetBinContent(i));
 				area_ideal->SetBinContent(i, TMath::Pi()*(pow(rlow+width,2)-pow(rlow,2))); 
 				area_ideal->SetBinError(i, 0); 

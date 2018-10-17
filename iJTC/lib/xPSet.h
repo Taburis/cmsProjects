@@ -3,7 +3,9 @@
 #define xPSet_cpp
 #include "any.hpp"
 #include <unordered_map>
-
+//create or set a parameter named pt with initial value 10 : setPara("pt", 10)
+//get a exist parameter named pt : getPara("pt")
+//create a new parameter named pt with inital value 10 : addPara("pt", 10)
 class xPSet{
 		public: 
 				xPSet(){}

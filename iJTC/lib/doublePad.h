@@ -1,6 +1,9 @@
 
 #ifndef doublePad_H
 #define doublePad_H
+#include "TPad.h"
+#include "TLegend.h"
+#include "TLatex.h"
 
 class doublePad{
 	public:
@@ -93,7 +96,7 @@ void doublePad::Draw(){
 	gPad->SetTicks(1,1);
 }
 
-void doublePad::setRange(float x1, float x2, float y3=1, float y4=0, float y1=1, float y2=0 ){
+void doublePad::setRange(float x1, float x2, float y3, float y4, float y1, float y2 ){
 	xmin= x1; xmax=x2; y1min =y1;y1max=y2; y2min =y3; y2max=y4;
 }
 void doublePad::drawLegend(){

@@ -9,6 +9,8 @@
 
 class any;
 
+//define an object that could hold any data type
+
 template<class Type> Type any_cast(any&);
 template<class Type> Type any_cast(const any&);
 template<class Type> Type* any_cast(any*);

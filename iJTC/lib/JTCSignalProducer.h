@@ -4,6 +4,9 @@
 #ifndef signalFactoryBase_H
 #include "signalFactoryBase.h"
 #endif
+#include "TFile.h"
+#include "TF1.h"
+#include <iostream>
 
 const Double_t etabin[24] ={-3.5, -3, -2.5,-2.,-1.5, -1., -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1., 1.5,2.,2.5, 3, 3.5};
 const Double_t phibin[18] ={-1.50796, -1.00531,-0.879646, -.75398, -0.628319,-0.502655, -0.376991, -0.251327, -0.125664, 0.125664, 0.251327, 0.376991, 0.502655, 0.628319,.75398, 0.879646, 1.00531,1.50796};
@@ -182,8 +185,8 @@ TH2D* JTCSignalProducer::getSignal(TString name, bool doSeagullCorr){
 		if(shiftSignal){
 			   	getSignal_phiSideBand("sideBand");
 				float mean = getMean(side_deta, -0.5, 0.5);
-				cout<<"mean = "<<mean<<endl;
-				cout<<"name : "<<name<<endl;
+				std::cout<<"mean = "<<mean<<std::endl;
+				std::cout<<"name : "<<name<<std::endl;
 				shiftTH2D(sig, -mean);
 		}
 		return sig;
@@ -328,11 +331,11 @@ void JTCSignalProducer::drawBkgCheck(bool doX){
 
 
 void JTCSignalProducer::drawSideBandCheck(){
-		cout<<"drawing.."<<endl;
+		std::cout<<"drawing.."<<std::endl;
 		TH1 *h1, *h2;
 		h1 = sig_deta; 
 		h2 = side_deta; 
-		cout<<h2->GetName()<<endl;
+		std::cout<<h2->GetName()<<std::endl;
 		histStyle(h2);
 		float mean = h2->GetBinContent(h1->FindBin(0));
 		float dvt =  h2->GetBinError(h1->FindBin(0));
@@ -349,12 +352,12 @@ void JTCSignalProducer::drawSideBandCheck(){
 }
 
 void JTCSignalProducer::drawSliceSideBand(TString name){
-		cout<<"drawing slice sideband ... "<<endl;
+		std::cout<<"drawing slice sideband ... "<<std::endl;
 	TH1D* h[3];
 	TString tmp = "side_deta1_"+name;
 	h[0] = (TH1D*) projX(1, sig, 1.2, 1.4, "e"); h[0]->SetName(tmp);
-	cout<<sig->GetName()<<endl;
-	cout<<h[0]->GetName()<<endl;
+	std::cout<<sig->GetName()<<std::endl;
+	std::cout<<h[0]->GetName()<<std::endl;
 	tmp = "side_deta2_"+name;
 	h[1] = (TH1D*) projX(1, sig, 1.4, 1.6, "e"); h[1]->SetName(tmp);
 	tmp = "side_deta3_"+name;
@@ -374,7 +377,7 @@ void JTCSignalProducer::drawSliceSideBand(TString name){
 		h[i]->SetLineWidth(1);
 		h[i]->Draw("same");
 	}
-		cout<<"finish drawing "<<endl;
+		std::cout<<"finish drawing "<<std::endl;
 }
 
 void JTCSignalProducer::gausFit(){

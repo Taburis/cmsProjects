@@ -7,6 +7,7 @@
 #endif
 #ifndef jtc_macro_utility_H
 #define jtc_macro_utility_H
+#include "THStack.h"
 
 int nPt = 6;
 int nCent=2;
@@ -15,19 +16,19 @@ int nrow2= 4, ncol2 = 6; // for pb
 
 TString dataDumpPath = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/myCorrelation/trunk/";
 TString figDumpPath  = "/Users/tabris/cmsProjects/iJTC/macros/bJTC/fig_newWay/";
-TString *track_label;
+//TString *track_label;
 TString *cent_label;
-//TString track_label[] = {"1 < p_{T}^{track} < 2 GeV",
-//		"2 < p_{T}^{track} < 3 GeV", "3 < p_{T}^{track} < 4 GeV",
-//		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
-//		"p_{T}^{track} > 12 GeV"};
+TString track_label[] = {"1 < p_{T}^{track} < 2 GeV",
+		"2 < p_{T}^{track} < 3 GeV", "3 < p_{T}^{track} < 4 GeV",
+		"4 < p_{T}^{track} < 8 GeV", "8 < p_{T}^{track} < 12 GeV", 
+		"p_{T}^{track} > 12 GeV"};
 //TString cent_label[]={"Cent. 0-30%", "Cent. 30-100%"};
 Color_t color_vec[6] = {kBlue+1, kRed+1, kGreen+2, kAzure+7, kMagenta+2, kBlack};
 
 
 //TLatex* tex = new TLatex(); 
 //tex->SetTextSize(.08);
-
+using namespace std;
 
 struct histCase{
 		//if want to add any hist, need to add it in the quickRegHist as well, and add the filling in the fillCase
@@ -54,11 +55,11 @@ void initHistCase(histCase &hc){
 		hc.jet_phi=new TH1D*[nCent];
 }
 
-histCase readHistCase(TString name, TString cap, TFile* f){
+histCase readHistCase(TString name, TString cap, TFile* f, bool sigOnly){
 		histCase hc;
 		initHistCase(hc);
 		for(int j=0; j<nCent; ++j){
-				hc.jet_corrpt[j] =(TH1D*)f->Get(cap+Form("_corrpt_%d", j));
+				hc.jet_corrpt[j] =(TH1D*)f->Get(cap+Form("_pt_%d", j));
 				hc.jet_eta[j] =(TH1D*)f->Get(cap+Form("_eta_%d", j));
 				hc.jet_phi[j] =(TH1D*)f->Get(cap+Form("_phi_%d", j));
 		}
@@ -67,14 +68,14 @@ histCase readHistCase(TString name, TString cap, TFile* f){
 						cout<<name+Form("_%d_%d", i, j)<<endl;
 						hc.sig[i+j*nPt] =(TH2D*)f->Get(name+Form("_%d_%d", i, j));
 						hc.sig_pTweighted[i+j*nPt] =(TH2D*)f->Get(name+Form("_pTweighted_%d_%d", i, j));
-						hc.mixing[i+j*nPt] =(TH2D*)f->Get(name+Form("_mixing_%d_%d", i, j));
-
+//						hc.sig[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
+//						hc.sig_pTweighted[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
+						if(sigOnly) continue;
 						hc.sig_raw[i+j*nPt] =(TH2D*)f->Get(name+Form("_noCorr_%d_%d", i, j));
 						hc.sig_pTweighted_raw[i+j*nPt] =(TH2D*)f->Get(name+Form("_pTweighted_noCorr_%d_%d", i, j));
 						hc.mixing_raw[i+j*nPt] =(TH2D*)f->Get(name+Form("_mixing_noCorr_%d_%d", i, j));
+						hc.mixing[i+j*nPt] =(TH2D*)f->Get(name+Form("_mixing_%d_%d", i, j));
 
-						hc.sig[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
-						hc.sig_pTweighted[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
 						hc.sig_raw[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
 						hc.sig_pTweighted_raw[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
 				}
@@ -306,6 +307,7 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 				for(int i=0; i<nPt ; ++i){
 						for(int j=0; j<ncent; ++j){
 								//cout<<i<<", "<<j<<endl;
+//						cout<<i<<", "<<j<<endl;
 								float grid = (max[i+j*nPt]-min[i+j*nPt])/16;
 
 								//cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
@@ -319,9 +321,11 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 								else h[index(i,j)]->SetAxisRange(min[i+j*nPt]-grid, max[i+j*nPt]+grid,"Y");
 								if(!isHI ) { 
 										cm->drawHist(h[index(i,j)], i+1);
-										cm->cd(i+1);
+										h[index(i,j)]->SetMinimum(1e-2);
+										gPad->SetLogy();
 										//cout<<i+1<<endl;
 										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
+										cm->cd(i+1);
 										tl->DrawLine(x1, line, x2, line);
 								} else { 
 										cm->drawHist(h[index(i,j)], i+1, 4-j);

@@ -9,7 +9,6 @@
 #endif
 #ifndef utility_H
 #define utility_H
-#endif
 
 TString dataDumpPath = "/Users/tabris/cmsProjects/iJTC/dataSet/bJTC/myCorrelation/trunk/";
 TString figDumpPath  = "/Users/tabris/cmsProjects/iJTC/macros/bJTC/fig_newWay/";
@@ -659,7 +658,7 @@ void showClosure(TString name, bool isHI , float x1, float x2, float y1, float y
 						ratio[i+nPt*j]->SetMarkerSize(0.5);
 						ratio[i+nPt*j]->SetLineColor(kBlue+3);
 						ratio[i+nPt*j]->SetMarkerColor(kBlue+3);
-						ratio[i+nPt*j]->SetAxisRange(y1, y2, "Y");
+						if(y2> y1) ratio[i+nPt*j]->SetAxisRange(y1, y2, "Y");
 						ratio[i+nPt*j]->SetAxisRange(x1, x2, "X");
 						if(isHI){
 								df->addHist(h1[i+nPt*j], j+1,i+1 );
@@ -1066,3 +1065,4 @@ void ring_corr( TH2D** h, TH1D** corr, float drmax = 1){
 }
 
 
+#endif

@@ -220,5 +220,25 @@ void applyResidual(TString name, TString resfname ){
 		file->Close(); 
 }
 
+TH1D* get_eff(TString name, TFile *f ){
+		TH1D* eff = (TH1D*) f->Get("taggedTrueBJet_corrpt_0")->Clone(name);
+		TH1D* tmp = (TH1D*) f->Get("trueBJet_corrpt_0");
+		eff->Divide(eff, tmp, 1, 1, "B");
+		return eff;
+}
+
+TH1D* get_pur(TString name, TFile *f ){
+		TH1D* eff = (TH1D*) f->Get("taggedTrueBJet_corrpt_0")->Clone(name);
+		TH1D* tmp = (TH1D*) f->Get("taggedBJet_corrpt_0");
+		eff->Divide(eff, tmp, 1, 1, "B");
+		return eff;
+}
+
+TH1D* get_cont(TString name, TFile *f ){
+		TH1D* eff = (TH1D*) f->Get("contJet_corrpt_0")->Clone(name);
+		TH1D* tmp = (TH1D*) f->Get("inclJet_corrpt_0");
+		eff->Divide(tmp);
+		return eff;
+}
 #endif
 
