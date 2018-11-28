@@ -313,16 +313,20 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 								//cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
 								h[index(i,j)]->SetLineColor(color_vec[k]);
 								h[index(i,j)]->SetMarkerStyle(20);
-								h[index(i,j)]->SetMarkerSize(0.3);
+						//		if(k == 2) 
+						//		h[index(i,j)]->SetMarkerStyle(21);
+						//		else 
+						//		h[index(i,j)]->SetMarkerStyle(20);
+								h[index(i,j)]->SetMarkerSize(0.8);
 								h[index(i,j)]->SetMarkerColor(color_vec[k]);
 								h[index(i,j)]->GetXaxis()->SetNdivisions(505);
 								h[index(i,j)]->SetAxisRange(x1, x2,"X");
 								if(y1<y2) h[index(i,j)]->SetAxisRange(y1, y2,"Y");
-								else h[index(i,j)]->SetAxisRange(min[i+j*nPt]-grid, max[i+j*nPt]+grid,"Y");
-								if(!isHI ) { 
+								else h[index(i,j)]->SetAxisRange(min[i+j*nPt]-1.5*grid, max[i+j*nPt]+1.5*grid,"Y");
+								if(!isHI) { 
 										cm->drawHist(h[index(i,j)], i+1);
-										h[index(i,j)]->SetMinimum(1e-2);
-										gPad->SetLogy();
+	//									h[index(i,j)]->SetMinimum(1e-1);
+	//									gPad->SetLogy();
 										//cout<<i+1<<endl;
 										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 										cm->cd(i+1);
