@@ -68,8 +68,8 @@ histCase readHistCase(TString name, TString cap, TFile* f, bool sigOnly){
 						cout<<name+Form("_%d_%d", i, j)<<endl;
 						hc.sig[i+j*nPt] =(TH2D*)f->Get(name+Form("_%d_%d", i, j));
 						hc.sig_pTweighted[i+j*nPt] =(TH2D*)f->Get(name+Form("_pTweighted_%d_%d", i, j));
-//						hc.sig[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
-//						hc.sig_pTweighted[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
+						hc.sig[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
+						hc.sig_pTweighted[i+j*nPt]->Scale(1.0/hc.jet_corrpt[j]->Integral());
 						if(sigOnly) continue;
 						hc.sig_raw[i+j*nPt] =(TH2D*)f->Get(name+Form("_noCorr_%d_%d", i, j));
 						hc.sig_pTweighted_raw[i+j*nPt] =(TH2D*)f->Get(name+Form("_pTweighted_noCorr_%d_%d", i, j));
@@ -313,20 +313,25 @@ TCanvas* showPlot(TString name, bool isHI , float line, float x1, float x2, floa
 								//cout<<index(i,j)<<endl; h[index(i,j)]->SetTitle("");
 								h[index(i,j)]->SetLineColor(color_vec[k]);
 								h[index(i,j)]->SetMarkerStyle(20);
-						//		if(k == 2) 
-						//		h[index(i,j)]->SetMarkerStyle(21);
-						//		else 
-						//		h[index(i,j)]->SetMarkerStyle(20);
 								h[index(i,j)]->SetMarkerSize(0.8);
+								if(k==3) h[index(i,j)]->SetMarkerSize(0.55);
 								h[index(i,j)]->SetMarkerColor(color_vec[k]);
 								h[index(i,j)]->GetXaxis()->SetNdivisions(505);
 								h[index(i,j)]->SetAxisRange(x1, x2,"X");
 								if(y1<y2) h[index(i,j)]->SetAxisRange(y1, y2,"Y");
 								else h[index(i,j)]->SetAxisRange(min[i+j*nPt]-1.5*grid, max[i+j*nPt]+1.5*grid,"Y");
+
+//for logy------------
+//								if( k==0) h[index(i,j)]->SetMarkerSize(1.2);
+//								if( index(i,j) < 4) {
+//									h[index(i,j)]->SetAxisRange(.0001, .008,"Y");
+//								}else {
+//									h[index(i,j)]->SetAxisRange(0.00001, 0.03,"Y");
+//								}
+//--------------------
 								if(!isHI) { 
 										cm->drawHist(h[index(i,j)], i+1);
-	//									h[index(i,j)]->SetMinimum(1e-1);
-	//									gPad->SetLogy();
+//										gPad->SetLogy();
 										//cout<<i+1<<endl;
 										tx->DrawLatexNDC(0.2, 0.93, track_label[i]);
 										cm->cd(i+1);
@@ -673,21 +678,28 @@ void showClosure(TString name, bool isHI , float x1, float x2, float y1, float y
 		auto df = new doublePanelFig(name+"_df", "", nrow, ncol, 0.4);
 		for(int i=0; i<nPt; ++i){
 				for(int j=0; j<ncent; ++j){
-						h1[i+nPt*j]->SetLineColor(kAzure+2);
-						h1[i+nPt*j]->SetMarkerColor(kAzure+2);
-						h2[i+nPt*j]->SetLineColor(kRed+1);
+						h1[i+nPt*j]->SetLineColor  (kGreen);
+						h1[i+nPt*j]->SetMarkerColor(kGreen);
+						//h1[i+nPt*j]->SetLineColor  (kAzure+2);
+						//h1[i+nPt*j]->SetMarkerColor(kAzure+2);
+						h2[i+nPt*j]->SetLineColor  (kRed+1);
 						h2[i+nPt*j]->SetMarkerColor(kRed+1);
+						//h2[i+nPt*j]->SetLineColor  (kAzure+7);
+						//h2[i+nPt*j]->SetMarkerColor(kAzure+7);
+						//h1[i+nPt*j]->SetLineColor  (kMagenta+2);
+						//h1[i+nPt*j]->SetMarkerColor(kMagenta+2);
+
 						h1[i+nPt*j]->SetMarkerStyle(20);
 						h2[i+nPt*j]->SetMarkerStyle(20);
-						h1[i+nPt*j]->SetMarkerSize(0.5);
-						h2[i+nPt*j]->SetMarkerSize(0.5);
+						h1[i+nPt*j]->SetMarkerSize(0.8);
+						h2[i+nPt*j]->SetMarkerSize(0.8);
 						df->addHist(h1[i+nPt*j], i/3+1,i%3+1 );
 						df->addHist(h2[i+nPt*j], i/3+1,i%3+1 );
 
 						ratio[i+nPt*j]->GetXaxis()->SetNdivisions(505);
 						ratio[i+nPt*j]->GetYaxis()->SetNdivisions(505);
 						ratio[i+nPt*j]->SetMarkerStyle(20);
-						ratio[i+nPt*j]->SetMarkerSize(0.5);
+						ratio[i+nPt*j]->SetMarkerSize(0.8);
 						ratio[i+nPt*j]->SetLineColor(kBlue+3);
 						ratio[i+nPt*j]->SetMarkerColor(kBlue+3);
 						ratio[i+nPt*j]->SetAxisRange(y1, y2, "Y");
@@ -889,6 +901,15 @@ void normalization(TH2D** h){
 		}
 }
 
+void normal2unit(TH1D** h){
+		for(int i=0; i<nPt; ++i){
+				for(int j=0; j<nCent; ++j){
+						float cc =  h[i+nPt*j]->Integral();
+						h[i+nPt*j]->Scale(1.0/cc);
+				}
+		}
+}
+
 void smooth(TH1D** h)
 {
 		for(int i=0; i<nPt; ++i){
@@ -1043,6 +1064,21 @@ TCanvas* showPanel_syst(TString name, bool isHI , float x1, float x2, float y1, 
 		df->SaveAs(figDumpPath+name);
 		return (TCanvas*) df;
 
+}
+
+TH1D* integral_yield(TString name, TH1D** hh ){
+		float ptbin[7] = {1, 2, 3, 4, 8, 12, 20};
+		TString labels[7] = {"1", "2", "3", "4", "8", "12", "18"};
+		TH1D* h = new TH1D(name, "", 6, ptbin);
+		h->Sumw2();
+		for(int i=0; i<6; i++){
+				float yield = hh[i]->Integral();
+				h->SetBinContent(i+1, yield/(ptbin[i+1]-ptbin[i]));
+				h->SetBinError(i+1, 1/yield/(ptbin[i+1]-ptbin[i]));
+				h->GetXaxis()->SetBinLabel(i+1, labels[i]);
+		}
+		h->GetXaxis()->SetTitle("p_{T}^{trk}");
+		return h;
 }
 
 #endif

@@ -88,8 +88,25 @@ class tensor_hist(object):
         for i in self.hist: i.SetLineColor(color)
 
     def SetMarkerSize(self, size):
-        for i in self.hist: i.SetMarkerSizeColor(size)
+        for i in self.hist: i.SetMarkerSize(size)
 
     def SetMarkerStyle(self, num):
         for i in self.hist: i.SetMarkerStyle(num)
+
+    def SetMarkerColor(self, color):
+        for i in self.hist: i.SetMarkerColor(color)
+
+#    def automorphism(self, f, new_shape = 0):
+#        #this function used to re-arrange the tensor
+#        new_hist = []
+#        indx = self.shape
+#        for i in range(self.nform):
+#            indx[i] = 0
+#        for i in range(self.dim):
+#            bits = 0
+#            for k in range(self.nform):
+#                num = indx[k]+bits
+#                bits = math.floor(num/dim[k]) 
+#                indx[k] = int((num)%dim[k])
+#        cor = (i: for i in 
 
