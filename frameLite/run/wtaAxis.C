@@ -146,7 +146,7 @@ int main(){
 		//auto a = new mcCompare(ps);
 
 		ff->EventMax=-1;
-		ff->addAnalyzer((rootEDMAnalyzer*) a);
+		ff->addProducer((rootEDMProducer*) a);
 		ff->eventLoop();
 		delete ff;
 		return 0;

@@ -23,6 +23,11 @@ class rootEDMProducer : public rootEDMPlugin {
 				 virtual void endJob() = 0;
 };
 
+class rootEDMAnalyzer : public node{
+		public : rootEDMAnalyzer(){};
+				 virtual ~rootEDMAnalyzer(){};
+}
+
 class rootEDMEventFilter : public rootEDMPlugin {
 		public : rootEDMEventFilter(){};
 				 virtual ~rootEDMEventFilter(){};
@@ -50,6 +55,11 @@ class rootEDMFrame : public node{
 				 void runBeginSection();
 				 void runEndSection();
 				 void runEventSection();
+				 virtual int evaluate(){
+						 eventLoop();
+						 _done();
+						 return 0;
+				 };
 		public :
 				 TFile* _infile;
 				 Long64_t EventMax = 1;

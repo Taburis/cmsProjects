@@ -52,7 +52,7 @@ class node : public nodeBase{
 		public : node(){};
 				 ~node(){};
 				 void add_cfg(ParaSet & ps) {pset_ = &ps; }
-				 int evaluate() { return 0;}
+				 //virtual int evaluate() { return 0;}
 		public : 
 				 ParaSet *pset_ ; 
 };
